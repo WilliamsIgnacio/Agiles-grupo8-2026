@@ -1,6 +1,9 @@
 package character
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 type Service struct {
 	repository *Repository
@@ -26,6 +29,17 @@ func (service *Service) Get(id uint) (Character, error) {
 func (service *Service) Create(character Character) (Character, error) {
 	if character.Name == "" {
 		return Character{}, fmt.Errorf("El nombre del personaje no puede estar vacío")
+	}
+	if character.Gender != "Masculino" && character.Gender != "Femenino" {
+		return Character{}, fmt.Errorf("El genero del personaje solo puede ser Masculino o Femenino")
+	}
+	periods := []string{"Edad Antigua", "Edad Media", "Edad Moderna", "Edad Contemporanea"}
+	if !slices.Contains(periods, character.Period) {
+		return Character{}, fmt.Errorf("El periodo del personaje solo puede ser", periods)
+	}
+	continents := []string{"Europa", "Asia", "America", "Oceania", "Africa"}
+	if !slices.Contains(continents, character.Continent) {
+		return Character{}, fmt.Errorf("El continente del personaje solo puede ser", continents)
 	}
 
 	return service.repository.Create(character)
