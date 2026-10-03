@@ -33,7 +33,7 @@ func (service *Service) Create(character Character) (Character, error) {
 	if character.Gender != "Masculino" && character.Gender != "Femenino" {
 		return Character{}, fmt.Errorf("El genero del personaje solo puede ser Masculino o Femenino")
 	}
-	periods := []string{"Antiguedad", "Edad Media", "Edad Moderna", "Edad Contemporanea"}
+	periods := []string{"Edad Antigua", "Edad Media", "Edad Moderna", "Edad Contemporanea"}
 	if !slices.Contains(periods, character.Period) {
 		return Character{}, fmt.Errorf("El periodo del personaje solo puede ser", periods)
 	}
