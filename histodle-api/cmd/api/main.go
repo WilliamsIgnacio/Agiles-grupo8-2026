@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"histodle-api/config"
-	"histodle-api/internal/character"
 	"histodle-api/internal/database"
 	"histodle-api/internal/router"
 )
@@ -19,10 +18,6 @@ func main() {
 	}
 
 	log.Println("database connected")
-
-	if err := db.AutoMigrate(&character.Character{}); err != nil {
-		log.Fatal("error migrating database:", err)
-	}
 
 	r := router.New(db)
 
