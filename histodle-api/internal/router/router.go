@@ -16,7 +16,7 @@ func New(db *gorm.DB) http.Handler {
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"http://localhost:5173"},
-		AllowedMethods: []string{"GET", "POST", "PUT" "OPTIONS"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
 	}))
 
