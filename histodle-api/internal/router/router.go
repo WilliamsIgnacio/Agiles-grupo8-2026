@@ -7,11 +7,18 @@ import (
 	"histodle-api/internal/character"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"gorm.io/gorm"
 )
 
 func New(db *gorm.DB) http.Handler {
 	r := chi.NewRouter()
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"http://localhost:5173"},
+		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
+	}))
 
 	characterRepository := character.NewRepository(db)
 	characterService := character.NewService(characterRepository)

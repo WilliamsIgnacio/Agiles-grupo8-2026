@@ -1,12 +1,61 @@
-import { Route, Routes } from 'react-router-dom'
+import React from 'react';
+import { useState, useEffect } from 'react';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 
-function App() {
+//importacion de componentes
+import Navbar from './components/Navbar/Navbar';
+import Admin  from './pages/Admin/Admin';
+import Jugar from './pages/Jugar/Jugar';
+
+//importacion de tipos
+import type { Character } from './types/character';
+
+//importacion de servicios
+import { getCharacters } from './services/character';
+
+
+const MainLayout: React.FC = () => {
+
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const addCharacter = (character: Character) => {
+    setCharacters((currentCharacters) => [...currentCharacters, character]);
+  }
+
+  useEffect(() => {
+    getCharacters()
+      .then(setCharacters)
+      .catch((reason: unknown) => {
+        setError(reason instanceof Error ? reason.message : 'Error al cargar personajes');
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <Routes>
-      <Route path="/" element={<h1>Histodle</h1>} />
-      <Route path="*" element={<h1>Página no encontrada</h1>} />
-    </Routes>
-  )
-}
+    <>
+      <Navbar />
+      <main>
+        <Outlet context={{ characters, loading, error, addCharacter}} />
+      </main>
+    </>
+  );
+};
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <MainLayout />,
+    children: [
+      { path: 'jugar', element: <Jugar />},
+      { path: 'admin', element: <Admin />}
+    ],
+  },
+]);
+
+const App = () => {
+  return <RouterProvider router={router} />;
+};
 
 export default App
