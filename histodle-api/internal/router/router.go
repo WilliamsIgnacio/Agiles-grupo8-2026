@@ -27,6 +27,7 @@ func New(db *gorm.DB) http.Handler {
 	r.Get("/characters", characterHandler.List)
 	r.Get("/characters/{id}", characterHandler.Get)
 	r.Post("/characters", characterHandler.Create)
+	r.Put("/characters/{id}", characterHandler.Update)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
