@@ -15,4 +15,6 @@ export interface CharactersOutletContext {
   characters: Character[];
   loading: boolean;
   error: string | null;
+  addCharacter: (character: Character) => void;
+  updateCharacter: (character: Character) => void;
 }
