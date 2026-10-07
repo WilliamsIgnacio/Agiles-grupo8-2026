@@ -10,3 +10,9 @@ export interface Character {
   birthYear: number;
   yearOfDeath: number;
 }
+
+export interface CharactersOutletContext {
+  characters: Character[];
+  loading: boolean;
+  error: string | null;
+}

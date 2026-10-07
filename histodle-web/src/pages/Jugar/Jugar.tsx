@@ -1,7 +1,9 @@
 import React from 'react';
 
-export const Jugar: React.FC = () => {
+const Jugar: React.FC = () => {
   return (
-    <main style={{ minHeight: 'calc(100vh - 80px)', backgroundColor: '#12100d' }}></main>
-  )
-}
+    <h1>Jugar</h1>
+  );
+};
+
+export default Jugar;

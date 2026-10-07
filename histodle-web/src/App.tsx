@@ -1,20 +1,57 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { Navbar } from './components/Navbar/Navbar';
-import { Admin } from './pages/Admin/Admin';
-import { Jugar } from './pages/Jugar/Jugar';
-import './App.css';
+import React from 'react';
+import { useState, useEffect } from 'react';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 
-function App() {
+//importacion de componentes
+import Navbar from './components/Navbar/Navbar';
+import Admin  from './pages/Admin/Admin';
+import Jugar from './pages/Jugar/Jugar';
+
+//importacion de tipos
+import type { Character } from './types/character';
+
+//importacion de servicios
+import { getCharacters } from './services/character';
+
+
+const MainLayout: React.FC = () => {
+
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getCharacters()
+      .then(setCharacters)
+      .catch((reason: unknown) => {
+        setError(reason instanceof Error ? reason.message : 'Error al cargar personajes');
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <div className='app-layout'>
+    <>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Jugar />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="*" element={<Navigate to="/" replace />}/>
-      </Routes>
-    </div>
-  )
-}
+      <main>
+        <Outlet context={{ characters, loading, error }} />
+      </main>
+    </>
+  );
+};
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <MainLayout />,
+    children: [
+      { path: 'jugar', element: <Jugar />},
+      { path: 'admin', element: <Admin />}
+    ],
+  },
+]);
+
+const App = () => {
+  return <RouterProvider router={router} />;
+};
 
 export default App
