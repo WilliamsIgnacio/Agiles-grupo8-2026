@@ -64,6 +64,32 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, character)
 }
 
+func (handler *Handler) Update(w http.ResponseWriter, r *http.Request) {
+    id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+    if err != nil {
+        http.Error(w, "Id inválido para el personaje", http.StatusBadRequest)
+        return
+    }
+
+    var character Character
+    if err := json.NewDecoder(r.Body).Decode(&character); err != nil {
+        http.Error(w, "JSON inválido", http.StatusBadRequest)
+        return
+    }
+
+    updatedCharacter, err := handler.service.Update(uint(id), character)
+    if errors.Is(err, gorm.ErrRecordNotFound) {
+        http.Error(w, "Personaje no encontrado", http.StatusNotFound)
+        return
+    }
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    writeJSON(w, http.StatusOK, updatedCharacter)
+}
+
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

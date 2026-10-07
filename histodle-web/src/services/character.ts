@@ -26,3 +26,22 @@ export const createCharacter = async (characterData: Omit<Character, 'id'>): Pro
 
   return response.json();
 };
+
+export const updateCharacter = async (
+  id: number,
+  characterData: Omit<Character, 'id'>,
+): Promise<Character> => {
+  const response = await fetch(`${API_BASE_URL}/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(characterData),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error al modificar el personaje: ${response.statusText}`);
+  }
+
+  return response.json();
+};
