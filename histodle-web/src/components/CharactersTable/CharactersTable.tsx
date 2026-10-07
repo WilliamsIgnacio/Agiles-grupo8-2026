@@ -23,6 +23,7 @@ const CharactersTable: React.FC<Props> = ({ characters }) => {
           <th>Pais</th>
           <th>Continente</th>
           <th>Conocido por</th>
+          <th>Posicion</th>
           <th>Nacimiento</th>
           <th>Fallecimiento</th>
         </tr>

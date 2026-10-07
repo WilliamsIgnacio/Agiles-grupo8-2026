@@ -11,7 +11,7 @@ import { createCharacter } from '../../services/character';
 
 
 const Admin: React.FC = () => {
-  const { characters, loading, error } = useOutletContext<CharactersOutletContext>();
+  const { characters, loading, error, addCharacter: addToList } = useOutletContext<CharactersOutletContext>();
 
   const [newName, setNewName] = useState('');
   const [newGender, setNewGender] = useState('Masculino');
@@ -28,7 +28,7 @@ const Admin: React.FC = () => {
   if (error) return <p>{error}</p>;
 
 
-  const addCharacter = (event: SubmitEvent) => {
+  const addCharacter = async (event: SubmitEvent) => {
     event.preventDefault();
 
     const characterDTO: Character = {
@@ -42,20 +42,27 @@ const Admin: React.FC = () => {
       position: newPosition,
       birthYear: newBirthYear,
       yearOfDeath: newYearOfDeath
+    };
+
+    try {
+      console.log(characterDTO);
+      const createdCharacter = await createCharacter(characterDTO);
+      addToList(createdCharacter)
+
+      setNewName('');
+      setNewGender('');
+      setNewPeriod('');
+      setNewCountry('');
+      setNewContinent('');
+      setNewKnowFor('');
+      setNewPosition('');
+      setNewBirthYear(0);
+      setNewYearOfDeath(0);
+    } catch (reason) {
+      alert(reason instanceof Error ? reason.message : 'No se pudo crear el personaje')
     }
 
-    console.log(characterDTO);
-    createCharacter(characterDTO);
-
-    setNewName('');
-    setNewGender('');
-    setNewPeriod('');
-    setNewCountry('');
-    setNewContinent('');
-    setNewKnowFor('');
-    setNewPosition('');
-    setNewBirthYear(0);
-    setNewYearOfDeath(0);
+    
   }
 
 

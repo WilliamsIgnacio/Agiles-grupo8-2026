@@ -20,6 +20,10 @@ const MainLayout: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const addCharacter = (character: Character) => {
+    setCharacters((currentCharacters) => [...currentCharacters, character]);
+  }
+
   useEffect(() => {
     getCharacters()
       .then(setCharacters)
@@ -33,7 +37,7 @@ const MainLayout: React.FC = () => {
     <>
       <Navbar />
       <main>
-        <Outlet context={{ characters, loading, error }} />
+        <Outlet context={{ characters, loading, error, addCharacter}} />
       </main>
     </>
   );
