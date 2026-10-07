@@ -36,14 +36,7 @@ const CharactersTable: React.FC<Props> = ({ characters, onEdit }) => {
             <td>{character.period}</td>
             <td>{character.country}</td>
             <td>{character.continent}</td>
-            <td>
-              <button
-                type="button"
-                onClick={() => showKnowFor(character.knowFor)}
-              >
-                Mostrar
-              </button>
-            </td>
+            <td>{character.knowFor}</td>
             <td>{character.position}</td>
             <td>{character.birthYear}</td>
             <td>{character.yearOfDeath}</td>
