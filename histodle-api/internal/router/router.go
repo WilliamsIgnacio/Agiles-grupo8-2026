@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"histodle-api/internal/character"
+	"histodle-api/internal/occupation"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -28,6 +29,15 @@ func New(db *gorm.DB) http.Handler {
 	r.Get("/characters/{id}", characterHandler.Get)
 	r.Post("/characters", characterHandler.Create)
 	r.Put("/characters/{id}", characterHandler.Update)
+
+	//rutas de ocupaciones
+	occupationRepository := occupations.NewOccupationRepository(db)
+	occupationService := occupations.NewService(occupationRepository)
+	occupationHandler := occupations.NewHandler(occupationService)
+
+	r.Get("/occupations", occupationHandler.List)
+	r.Get("/occupations/{id}", occupationHandler.Get)
+	r.Post("/occupations", occupationHandler.Create)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
