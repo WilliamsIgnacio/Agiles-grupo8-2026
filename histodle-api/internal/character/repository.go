@@ -51,3 +51,12 @@ func (repository *Repository) Update(id uint, character Character) (Character, e
 
     return character, nil
 }
+
+func (repository *Repository) Delete(id uint) error {
+    var character Character
+    if err := repository.db.First(&character, id).Error; err != nil {
+        return err
+    }
+
+    return repository.db.Delete(&character).Error
+}
