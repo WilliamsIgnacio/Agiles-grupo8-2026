@@ -4,7 +4,7 @@ import { useOutletContext } from 'react-router-dom';
 
 import CharactersTable from '../../components/CharactersTable/CharactersTable';
 
-import type { Character, CharactersOutletContext } from '../../types/character';
+import type { Character, CharacterInput, CharactersOutletContext } from '../../types/character';
 import type { SubmitEvent } from 'react';
 
 import { createCharacter, updateCharacter } from '../../services/character';
@@ -13,6 +13,7 @@ import { createCharacter, updateCharacter } from '../../services/character';
 const Admin: React.FC = () => {
   const {
     characters,
+    occupations,
     loading,
     error,
     addCharacter: addToList,
@@ -28,9 +29,10 @@ const Admin: React.FC = () => {
   const [newPosition, setNewPosition] = useState('');
   const [newBirthYear, setNewBirthYear] = useState(0);
   const [newYearOfDeath, setNewYearOfDeath] = useState(0);
+  const [newOccupationsIds, setNewOccupationsIds] = useState<number[]>([]);
 
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
-  const [editForm, setEditForm] = useState<Omit<Character, 'id'> | null>(null);
+  const [editForm, setEditForm] = useState<CharacterInput | null>(null);
 
 
   if (loading) return <p>Cargando personajes...</p>;
@@ -40,8 +42,7 @@ const Admin: React.FC = () => {
   const addCharacter = async (event: SubmitEvent) => {
     event.preventDefault();
 
-    const characterDTO: Character = {
-      id: characters.length + 1,
+    const characterDTO: CharacterInput = {
       name: newName,
       gender: newGender,
       period: newPeriod,
@@ -50,7 +51,8 @@ const Admin: React.FC = () => {
       knowFor: newKnowFor,
       position: newPosition,
       birthYear: newBirthYear,
-      yearOfDeath: newYearOfDeath
+      yearOfDeath: newYearOfDeath,
+      occupationIds: newOccupationsIds
     };
 
     try {
@@ -59,14 +61,15 @@ const Admin: React.FC = () => {
       addToList(createdCharacter);
 
       setNewName('');
-      setNewGender('');
-      setNewPeriod('');
+      setNewGender('Masculino');
+      setNewPeriod('Edad Antigua');
       setNewCountry('');
-      setNewContinent('');
+      setNewContinent('Europa');
       setNewKnowFor('');
       setNewPosition('');
       setNewBirthYear(0);
       setNewYearOfDeath(0);
+      setNewOccupationsIds([]);
     } catch (reason) {
       alert(reason instanceof Error ? reason.message : 'No se pudo crear el personaje');
     }
@@ -84,21 +87,22 @@ const Admin: React.FC = () => {
       knowFor: character.knowFor,
       position: character.position,
       birthYear: character.birthYear,
-      yearOfDeath: character.yearOfDeath
+      yearOfDeath: character.yearOfDeath,
+      occupationIds: character.occupations.map((occupation) => occupation.id)
     });
   };
 
 
-  const updateEditField = (
-    field: keyof Omit<Character, 'id'>,
-    value: string | number
-  ) => {
+  type EditableCharacter = Omit<CharacterInput, 'occupationIds'>;
+
+  function updateEditField<Key extends keyof EditableCharacter>(
+    field: Key,
+    value: EditableCharacter[Key],
+  ) {
     setEditForm((current) =>
-      current
-        ? { ...current, [field]: value } as Omit<Character, 'id'>
-        : current
+      current ? { ...current, [field]: value } : current
     );
-  };
+  }
 
 
   const saveCharacter = async (event: SubmitEvent) => {
@@ -119,6 +123,10 @@ const Admin: React.FC = () => {
       alert(reason instanceof Error ? reason.message : 'No se pudo modificar el personaje');
     }
   };
+
+
+  const readOccupationIds = (select: HTMLSelectElement) =>
+    Array.from(select.selectedOptions, (option) => Number(option.value));
 
 
   return (
@@ -206,6 +214,28 @@ const Admin: React.FC = () => {
                 onChange={(event) => updateEditField('yearOfDeath', Number(event.target.value))}
               />
             </div>
+
+            <label>
+              Ocupaciones
+              <select
+                multiple
+                value={editForm.occupationIds.map(String)}
+                onChange={(event) => {
+                  const occupationIds = readOccupationIds(event.currentTarget);
+
+                  setEditForm((current) => 
+                    current ? { ...current, occupationIds } : current
+                  );
+                }}
+              >
+                {occupations.map((occupation) => (
+                  <option key={occupation.id} value={occupation.id}>
+                    {occupation.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <div>
               <button type="submit">Guardar cambios</button>
               <button
@@ -265,6 +295,24 @@ const Admin: React.FC = () => {
         <div>
           Anio de fallecimiento: <input value={newYearOfDeath} onChange={(event) => setNewYearOfDeath(Number(event.target.value))} />
         </div>
+
+        <label>
+          Ocupaciones
+          <select 
+            multiple
+            value={newOccupationsIds.map(String)}
+            onChange={(event) => 
+              setNewOccupationsIds(readOccupationIds(event.currentTarget))
+            }
+          >
+            {occupations.map((occupation) => (
+              <option key={occupation.id} value={occupation.id}>
+                {occupation.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <div>
           <button type="submit">Agregar Personaje</button>
         </div>

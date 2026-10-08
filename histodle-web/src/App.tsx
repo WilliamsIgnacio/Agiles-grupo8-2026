@@ -9,13 +9,16 @@ import Jugar from './pages/Jugar/Jugar';
 
 //importacion de tipos
 import type { Character } from './types/character';
+import type { Occupation } from './types/occupations';
 
 //importacion de servicios
 import { getCharacters } from './services/character';
+import { getOccupations } from './services/occupations';
 
 
 const MainLayout: React.FC = () => {
   const [characters, setCharacters] = useState<Character[]>([]);
+  const [occupations, setOccupations] = useState<Occupation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +33,7 @@ const MainLayout: React.FC = () => {
       ),
     );
   };
-
+/*
   useEffect(() => {
     getCharacters()
       .then(setCharacters)
@@ -43,6 +46,21 @@ const MainLayout: React.FC = () => {
       })
       .finally(() => setLoading(false));
   }, []);
+*/
+
+  useEffect(() => {
+    Promise.all([getCharacters(), getOccupations()])
+      .then(([loadedCharacters, loadedOccupations]) => {
+        setCharacters(loadedCharacters);
+        setOccupations(loadedOccupations);
+      })
+      .catch((reason: unknown) => {
+        setError(
+          reason instanceof Error ? reason.message : 'Error al cargar los datos',
+        );
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <>
@@ -51,6 +69,7 @@ const MainLayout: React.FC = () => {
         <Outlet
           context={{
             characters,
+            occupations,
             loading,
             error,
             addCharacter,
