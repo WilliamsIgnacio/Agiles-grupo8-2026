@@ -1,0 +1,28 @@
+import type { Occupation } from '../types/occupation';
+
+const API_BASE_URL = 'http://localhost:8080/occupations';
+
+export const getOccupations = async (): Promise<Occupation[]> => {
+    const response = await fetch(API_BASE_URL);
+    if (!response.ok) {
+        throw new Error(`Error al obtener las ocupaciones: ${response.statusText}`);
+    }
+
+    const data: Occupation[] = await response.json();
+    return data || [];
+}
+
+export const createOccupation = async (occupationData: Omit<Occupation, 'id'>): Promise<Occupation> => {
+    const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type' : 'application/json',
+        },
+        body: JSON.stringify(occupationData),
+    });
+    if (!response.ok) {
+        throw new Error(`Error al registrar la ocupación: ${response.statusText}`);
+    }
+    const data: Occupation = await response.json();
+    return data;
+}
