@@ -26,7 +26,7 @@ func (service *Service) Get(id uint) (Character, error) {
 	return character, nil
 }
 
-func (service *Service) Create(character Character) (Character, error) {
+func (service *Service) Create(character Character, occupationIDs []uint) (Character, error) {
 	if character.Name == "" {
 		return Character{}, fmt.Errorf("El nombre del personaje no puede estar vacío")
 	}
@@ -35,38 +35,38 @@ func (service *Service) Create(character Character) (Character, error) {
 	}
 	periods := []string{"Edad Antigua", "Edad Media", "Edad Moderna", "Edad Contemporanea"}
 	if !slices.Contains(periods, character.Period) {
-		return Character{}, fmt.Errorf("El periodo del personaje solo puede ser", periods)
+		return Character{}, fmt.Errorf("El periodo del personaje solo puede ser: %v", periods)
 	}
 	continents := []string{"Europa", "Asia", "America", "Oceania", "Africa"}
 	if !slices.Contains(continents, character.Continent) {
-		return Character{}, fmt.Errorf("El continente del personaje solo puede ser", continents)
+		return Character{}, fmt.Errorf("El continente del personaje solo puede ser: %v", continents)
 	}
 
-	return service.repository.Create(character)
+	return service.repository.Create(character, occupationIDs)
 }
 
-func (service *Service) Update(id uint, character Character) (Character, error) {
-    if character.Name == "" {
-        return Character{}, fmt.Errorf("El nombre del personaje no puede estar vacío")
-    }
-    if character.Gender != "Masculino" && character.Gender != "Femenino" {
-        return Character{}, fmt.Errorf("El genero del personaje solo puede ser Masculino o Femenino")
-    }
+func (service *Service) Update(id uint, character Character, occupationIDs []uint) (Character, error) {
+	if character.Name == "" {
+		return Character{}, fmt.Errorf("El nombre del personaje no puede estar vacío")
+	}
+	if character.Gender != "Masculino" && character.Gender != "Femenino" {
+		return Character{}, fmt.Errorf("El genero del personaje solo puede ser Masculino o Femenino")
+	}
 
-    periods := []string{"Edad Antigua", "Edad Media", "Edad Moderna", "Edad Contemporanea"}
-    if !slices.Contains(periods, character.Period) {
-        return Character{}, fmt.Errorf("El periodo del personaje solo puede ser uno de: %v", periods)
-    }
+	periods := []string{"Edad Antigua", "Edad Media", "Edad Moderna", "Edad Contemporanea"}
+	if !slices.Contains(periods, character.Period) {
+		return Character{}, fmt.Errorf("El periodo del personaje solo puede ser uno de: %v", periods)
+	}
 
-    continents := []string{"Europa", "Asia", "America", "Oceania", "Africa"}
-    if !slices.Contains(continents, character.Continent) {
-        return Character{}, fmt.Errorf("El continente del personaje solo puede ser uno de: %v", continents)
-    }
+	continents := []string{"Europa", "Asia", "America", "Oceania", "Africa"}
+	if !slices.Contains(continents, character.Continent) {
+		return Character{}, fmt.Errorf("El continente del personaje solo puede ser uno de: %v", continents)
+	}
 
-    updatedCharacter, err := service.repository.Update(id, character)
-    if err != nil {
-        return Character{}, fmt.Errorf("Error al actualizar el personaje: %w", err)
-    }
+	updatedCharacter, err := service.repository.Update(id, character, occupationIDs)
+	if err != nil {
+		return Character{}, fmt.Errorf("Error al actualizar el personaje: %w", err)
+	}
 
-    return updatedCharacter, nil
+	return updatedCharacter, nil
 }
