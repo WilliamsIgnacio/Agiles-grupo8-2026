@@ -17,4 +17,5 @@ export interface CharactersOutletContext {
   error: string | null;
   addCharacter: (character: Character) => void;
   updateCharacter: (character: Character) => void;
+  removeCharacter: (id: number) => void;
 }
