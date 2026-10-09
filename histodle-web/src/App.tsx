@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import Admin  from './pages/Admin/Admin';
 import Jugar from './pages/Jugar/Jugar';
+import Level from './components/Level/Level';
 
 
 const MainLayout: React.FC = () => {
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
       { path: 'jugar', element: <Jugar /> },
+      { path: 'jugar/nivel/:nroLevel', element: <Level /> },
       { path: 'admin', element: <Admin /> },
     ],
   },
