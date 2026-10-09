@@ -40,6 +40,7 @@ func New(db *gorm.DB) http.Handler {
 	r.Get("/occupations/{id}", occupationHandler.Get)
 	r.Post("/occupations", occupationHandler.Create)
 	r.Put("/occupations/{id}", occupationHandler.Update)
+	r.Delete("/occupations/{id}", occupationHandler.Delete)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
