@@ -46,3 +46,14 @@ export const updateOccupation = async (
 
     return response.json();
 };
+
+export const deleteOccupation = async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: 'DELETE',
+    });
+
+    if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Error al eliminar la ocupación: ${response.statusText}`);
+    }
+};

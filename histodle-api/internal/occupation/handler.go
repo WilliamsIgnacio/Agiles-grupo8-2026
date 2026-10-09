@@ -91,6 +91,30 @@ func (handler *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, updatedOccupation)
 }
 
+func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
+	err = handler.service.DeleteOccupation(uint(id))
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Ocupación no encontrada", http.StatusNotFound)
+		return
+	}
+	if errors.Is(err, ErrOccupationInUse) {
+		http.Error(w, "No se puede eliminar la ocupación porque está asignada a un personaje", http.StatusConflict)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Error al eliminar la ocupación", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

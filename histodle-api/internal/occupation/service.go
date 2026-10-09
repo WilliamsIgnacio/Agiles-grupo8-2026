@@ -44,3 +44,10 @@ func (service *Service) UpdateOccupation(id uint, occupation Occupation) (Occupa
 
 	return updatedOccupation, nil
 }
+
+func (service *Service) DeleteOccupation(id uint) error {
+	if err := service.repository.Delete(id); err != nil {
+		return fmt.Errorf("Error al eliminar la ocupación: %w", err)
+	}
+	return nil
+}

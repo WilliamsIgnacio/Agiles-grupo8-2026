@@ -1,6 +1,12 @@
 package occupations
 
-import "gorm.io/gorm"
+import (
+	"errors"
+
+	"gorm.io/gorm"
+)
+
+var ErrOccupationInUse = errors.New("la ocupación está asignada a un personaje")
 
 type OccupationRepository struct {
 	db *gorm.DB
@@ -41,4 +47,23 @@ func (repository *OccupationRepository) Update(id uint, occupation Occupation) (
 
 	existing.Name = occupation.Name
 	return existing, nil
+}
+
+func (repository *OccupationRepository) Delete(id uint) error {
+	var occupation Occupation
+	if err := repository.db.First(&occupation, id).Error; err != nil {
+		return err
+	}
+
+	var assignedCharacters int64
+	if err := repository.db.Table("character_occupations").
+		Where("occupation_id = ?", occupation.ID).
+		Count(&assignedCharacters).Error; err != nil {
+		return err
+	}
+	if assignedCharacters > 0 {
+		return ErrOccupationInUse
+	}
+
+	return repository.db.Delete(&occupation).Error
 }
