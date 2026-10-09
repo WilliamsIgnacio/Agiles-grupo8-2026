@@ -36,10 +36,10 @@ func (handler *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	occupation, err := handler.service.GetOccupationByID(uint(id))
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, "Ocupación no encontrada", http.StatusNotFound)
-			return
-		}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Ocupación no encontrada", http.StatusNotFound)
+		return
+	}
 
 	if err != nil {
 		http.Error(w, "Error al obtener la ocupación", http.StatusInternalServerError)
@@ -63,6 +63,32 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, occupation)
+}
+
+func (handler *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
+	var occupation Occupation
+	if err := json.NewDecoder(r.Body).Decode(&occupation); err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	updatedOccupation, err := handler.service.UpdateOccupation(uint(id), occupation)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Ocupación no encontrada", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, updatedOccupation)
 }
 
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
