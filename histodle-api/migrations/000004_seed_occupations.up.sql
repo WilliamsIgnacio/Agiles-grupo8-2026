@@ -1,0 +1,17 @@
+INSERT INTO occupations (name) VALUES
+    ('Gobernante'),
+    ('Militar'),
+    ('Político'),
+    ('Filósofo'),
+    ('Científico'),
+    ('Matemático'),
+    ('Escritor'),
+    ('Artista'),
+    ('Religioso'),
+    ('Explorador'),
+    ('Inventor'),
+    ('Activista'),
+    ('Enfermería'),
+    ('Aviador'),
+    ('Abogado'),
+    ('Futbolista');
