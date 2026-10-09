@@ -16,13 +16,33 @@ export const createOccupation = async (occupationData: Omit<Occupation, 'id'>): 
     const response = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: {
-            'Content-Type' : 'application/json',
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify(occupationData),
     });
+
     if (!response.ok) {
         throw new Error(`Error al registrar la ocupación: ${response.statusText}`);
     }
-    const data: Occupation = await response.json();
-    return data;
-}
+
+    return response.json();
+};
+
+export const updateOccupation = async (
+    id: number,
+    occupationData: Omit<Occupation, 'id'>,
+): Promise<Occupation> => {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(occupationData),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error al modificar la ocupación: ${response.statusText}`);
+    }
+
+    return response.json();
+};
