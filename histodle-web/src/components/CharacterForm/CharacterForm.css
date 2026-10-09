@@ -1,0 +1,193 @@
+.character-form-container {
+    background-color: #120e17;
+    color: #f3f3f6;
+    padding: 1.75rem 2rem;
+    border-radius: 16px;
+    max-width: 620px;
+    margin: 0 auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.character-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.character-form-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    color: #ffffff;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    color: #8b8595;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.close-button:hover {
+    color: #ffffff;
+}
+
+.character-form-subtitle {
+    color: #8b8595;
+    font-size: 0.9rem;
+    margin-top: 0.4rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.4;
+}
+
+.character-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-group.full-width {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.label-with-hint {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.field-hint {
+    font-size: 0.78rem;
+    color: #8b8595;
+    font-weight: 400;
+}
+
+.character-form input[type="text"],
+.character-form input[type="number"],
+.character-form select {
+    background-color: #1a1423;
+    border: 1px solid #2d243a;
+    border-radius: 20px;
+    color: #ffffff;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.character-form input::placeholder {
+    color: #5d5568;
+}
+
+.character-form input:focus,
+.character-form select:focus {
+    border-color: #b632df;
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+}
+
+.character-form select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8595' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+    cursor: pointer;
+}
+
+.occupations-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+}
+
+.occupation-pill {
+    background-color: #1a1423;
+    border: 1px solid #2d243a;
+    color: #d1cbd8;
+    border-radius: 20px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.occupation-pill:hover {
+    border-color: #524366;
+    color: #ffffff;
+}
+
+.occupation-pill.selected {
+    background-color: #b632df;
+    background: linear-gradient(135deg, #a855f7, #c026d3);
+    border-color: transparent;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.btn {
+    border-radius: 20px;
+    padding: 0.6rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-secondary {
+    background-color: #1a1423;
+    color: #ffffff;
+    border: 1px solid #2d243a;
+}
+
+.btn-secondary:hover {
+    background-color: #261d33;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #b632df, #c026d3);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    opacity: 0.92;
+}
