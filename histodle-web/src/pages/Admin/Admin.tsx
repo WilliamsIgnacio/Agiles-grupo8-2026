@@ -1,24 +1,26 @@
 import React from 'react';
-import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
-
-import CharactersTable from '../../components/CharactersTable/CharactersTable';
-
-import type { Character, CharacterInput, CharactersOutletContext } from '../../types/character';
+import { useState, useEffect } from 'react';
 import type { SubmitEvent } from 'react';
 
-import { createCharacter, updateCharacter } from '../../services/character';
+//importacion de componentes
+import CharactersTable from '../../components/CharactersTable/CharactersTable';
+
+//importacion de tipos
+import type { Character, CharacterInput } from '../../types/character';
+import type { Occupation } from '../../types/occupations';
+
+//importacion servicios
+import { getCharacters, createCharacter, updateCharacter } from '../../services/character';
+import { getOccupations } from '../../services/occupations';
+
 
 
 const Admin: React.FC = () => {
-  const {
-    characters,
-    occupations,
-    loading,
-    error,
-    addCharacter: addToList,
-    updateCharacter: updateInList
-  } = useOutletContext<CharactersOutletContext>();
+
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [occupations, setOccupations] = useState<Occupation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [newName, setNewName] = useState('');
   const [newGender, setNewGender] = useState('Masculino');
@@ -33,6 +35,21 @@ const Admin: React.FC = () => {
 
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
   const [editForm, setEditForm] = useState<CharacterInput | null>(null);
+
+
+  useEffect(() => {
+    Promise.all([getCharacters(), getOccupations()])
+      .then(([loadedCharacters, loadedOccupations]) => {
+        setCharacters(loadedCharacters);
+        setOccupations(loadedOccupations);
+      })
+      .catch((reason: unknown) => {
+        setError(
+          reason instanceof Error ? reason.message : 'Error al cargar los datos',
+        );
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
 
   if (loading) return <p>Cargando personajes...</p>;
@@ -58,7 +75,7 @@ const Admin: React.FC = () => {
     try {
       console.log(characterDTO);
       const createdCharacter = await createCharacter(characterDTO);
-      addToList(createdCharacter);
+      setCharacters((currentCharacters) => [...currentCharacters, createdCharacter])
 
       setNewName('');
       setNewGender('Masculino');
@@ -116,7 +133,13 @@ const Admin: React.FC = () => {
         editForm
       );
 
-      updateInList(updatedCharacter);
+     // updateInList(updatedCharacter);
+      setCharacters((currentCharacters) =>
+        currentCharacters.map((character) =>
+          character.id === updatedCharacter.id ? updatedCharacter : character,
+        ),
+      );
+
       setEditingCharacter(null);
       setEditForm(null);
     } catch (reason) {
