@@ -5,9 +5,14 @@ import type { Character } from '../../types/character';
 interface Props {
   characters: Character[];
   onEdit: (character: Character) => void;
+  onDelete: (character: Character) => void;
 }
 
-const CharactersTable: React.FC<Props> = ({ characters, onEdit }) => {
+const CharactersTable: React.FC<Props> = ({
+  characters,
+  onEdit,
+  onDelete
+}) => {
   const showKnowFor = (knowFor: string): void => {
     alert(knowFor);
   };
@@ -50,6 +55,9 @@ const CharactersTable: React.FC<Props> = ({ characters, onEdit }) => {
             <td>
               <button type="button" onClick={() => onEdit(character)}>
                 Editar
+              </button>
+              <button type="button" onClick={() => onDelete(character)}>
+                Eliminar
               </button>
             </td>
           </tr>

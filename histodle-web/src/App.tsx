@@ -31,6 +31,12 @@ const MainLayout: React.FC = () => {
     );
   };
 
+  const removeCharacter = (id: number) => {
+  setCharacters((currentCharacters) =>
+    currentCharacters.filter((character) => character.id !== id),
+  );
+};
+
   useEffect(() => {
     getCharacters()
       .then(setCharacters)
@@ -55,6 +61,7 @@ const MainLayout: React.FC = () => {
             error,
             addCharacter,
             updateCharacter,
+            removeCharacter,
           }}
         />
       </main>

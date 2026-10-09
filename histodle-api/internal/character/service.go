@@ -70,3 +70,11 @@ func (service *Service) Update(id uint, character Character) (Character, error) 
 
     return updatedCharacter, nil
 }
+
+func (service *Service) Delete(id uint) error {
+    if err := service.repository.Delete(id); err != nil {
+        return fmt.Errorf("Error al eliminar el personaje: %w", err)
+    }
+
+    return nil
+}
