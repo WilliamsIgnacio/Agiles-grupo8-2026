@@ -7,9 +7,8 @@ import Admin  from './pages/Admin/Admin';
 import Jugar from './pages/Jugar/Jugar';
 
 
-
-
 const MainLayout: React.FC = () => {
+
   return (
     <>
       <Navbar />

@@ -45,3 +45,13 @@ export const updateCharacter = async (
 
   return response.json();
 };
+
+export const deleteCharacter = async (id: number): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error al eliminar el personaje: ${response.statusText}`);
+  }
+};

@@ -94,6 +94,15 @@ func (repository *Repository) Update(id uint, character Character, occupationIDs
 	return updated, nil
 }
 
+func (repository *Repository) Delete(id uint) error {
+	var character Character
+	if err := repository.db.First(&character, id).Error; err != nil {
+		return err
+	}
+
+	return repository.db.Delete(&character).Error
+}
+
 func findOccupations(tx *gorm.DB, occupationIDs []uint) ([]occupation.Occupation, error) {
 	uniqueIDs := make([]uint, 0, len(occupationIDs))
 	seenIDs := make(map[uint]struct{}, len(occupationIDs))

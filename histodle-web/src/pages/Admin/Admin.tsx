@@ -4,15 +4,15 @@ import type { SubmitEvent } from 'react';
 
 //importacion de componentes
 import CharactersTable from '../../components/CharactersTable/CharactersTable';
+import OccupationsTable from '../../components/OccupationsTable/OccupationsTable';
 
 //importacion de tipos
 import type { Character, CharacterInput } from '../../types/character';
 import type { Occupation } from '../../types/occupations';
 
 //importacion servicios
-import { getCharacters, createCharacter, updateCharacter } from '../../services/character';
-import { getOccupations } from '../../services/occupations';
-
+import { getCharacters, createCharacter, updateCharacter, deleteCharacter } from '../../services/character';
+import { getOccupations, updateOccupation} from '../../services/occupations';
 
 
 const Admin: React.FC = () => {
@@ -51,6 +51,21 @@ const Admin: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const [occupationsError, setOccupationsError] = useState<string | null>(null);
+  const [editingOccupation, setEditingOccupation] = useState<Occupation | null>(null);
+  const [occupationName, setOccupationName] = useState('');
+
+  useEffect(() => {
+    getOccupations()
+      .then(setOccupations)
+      .catch((reason: unknown) => {
+        setOccupationsError(
+          reason instanceof Error
+            ? reason.message
+            : 'Error al cargar las ocupaciones',
+        );
+      });
+  }, []);
 
   if (loading) return <p>Cargando personajes...</p>;
   if (error) return <p>{error}</p>;
@@ -147,6 +162,58 @@ const Admin: React.FC = () => {
     }
   };
 
+  const startEditingOccupation = (occupation: Occupation) => {
+    setEditingOccupation(occupation);
+    setOccupationName(occupation.name);
+  };
+
+  const saveOccupation = async (event: SubmitEvent) => {
+    event.preventDefault();
+
+    if (!editingOccupation) return;
+    if (!occupationName.trim()) {
+      alert('El nombre de la ocupación no puede estar vacío.');
+      return;
+    }
+
+    try {
+      const updatedOccupation = await updateOccupation(editingOccupation.id, {
+        name: occupationName.trim(),
+      });
+      setOccupations((currentOccupations) =>
+        currentOccupations.map((occupation) =>
+          occupation.id === updatedOccupation.id ? updatedOccupation : occupation,
+        ),
+      );
+      setEditingOccupation(null);
+      setOccupationName('');
+      alert('La ocupación se modificó correctamente.');
+    } catch (reason) {
+      alert(reason instanceof Error ? reason.message : 'No se pudo modificar la ocupación');
+    }
+  };
+
+  const deleteSelectedCharacter = async (character: Character) => {
+    const confirmed = window.confirm(
+      `¿Seguro que querés eliminar a ${character.name}?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteCharacter(character.id);
+      setCharacters((currentCharacters) =>
+        currentCharacters.filter((currentCharacter) => currentCharacter.id !== character.id),
+      );
+
+      if (editingCharacter?.id === character.id) {
+        setEditingCharacter(null);
+        setEditForm(null);
+      }
+    } catch (reason) {
+      alert(reason instanceof Error ? reason.message : 'No se pudo eliminar el personaje');
+    }
+  };
+
 
   const readOccupationIds = (select: HTMLSelectElement) =>
     Array.from(select.selectedOptions, (option) => Number(option.value));
@@ -160,6 +227,9 @@ const Admin: React.FC = () => {
       <CharactersTable
         characters={characters}
         onEdit={startEditing}
+        onDelete={(character) => {
+          void deleteSelectedCharacter(character);
+        }}
       />
 
       {editingCharacter && editForm && (
@@ -340,6 +410,44 @@ const Admin: React.FC = () => {
           <button type="submit">Agregar Personaje</button>
         </div>
       </form>
+
+      <h2>Ocupaciones</h2>
+      {occupationsError ? (
+        <p>{occupationsError}</p>
+      ) : (
+        <OccupationsTable
+          occupations={occupations}
+          onEdit={startEditingOccupation}
+        />
+      )}
+
+      {editingOccupation && (
+        <>
+          <h2>Modificar ocupación: {editingOccupation.name}</h2>
+          <form onSubmit={saveOccupation}>
+            <div>
+              Nombre:{' '}
+              <input
+                required
+                value={occupationName}
+                onChange={(event) => setOccupationName(event.target.value)}
+              />
+            </div>
+            <div>
+              <button type="submit">Guardar cambios</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingOccupation(null);
+                  setOccupationName('');
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </>
+      )}
     </section>
   );
 };
