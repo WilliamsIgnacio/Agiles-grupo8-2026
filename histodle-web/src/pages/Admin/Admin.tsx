@@ -21,6 +21,7 @@ import {
   getOccupations,
   updateOccupation,
   deleteOccupation,
+  createOccupation,
 } from '../../services/occupations';
 
 
@@ -116,6 +117,24 @@ const Admin: React.FC = () => {
     }
   };
 
+
+  const addOccupation = async (event: SubmitEvent) => {
+    event.preventDefault();
+
+    const name = occupationName.trim();
+    if (!name) {
+      alert('El nombre de la ocupación no puede estar vacío.');
+      return;
+    }
+
+    try {
+      const createdOccupation = await createOccupation( { name });
+      setOccupations((currentOccupations) => [...currentOccupations, createdOccupation]);
+      setOccupationName('');
+    } catch (reason) {
+      alert(reason instanceof Error ? reason.message : 'No se pudo crear la ocupación');
+    }
+  };
 
   const startEditing = (character: Character) => {
     setEditingCharacter(character);
@@ -476,6 +495,15 @@ const Admin: React.FC = () => {
           </form>
         </>
       )}
+      <h2>Agregar Ocupación:</h2>
+      <form onSubmit={addOccupation}>
+        <div>
+          Nombre: <input value={occupationName} onChange={(event) => setOccupationName(event.target.value)} />
+        </div>
+        <div>
+          <button type="submit">Agregar Ocupación</button>
+        </div>
+      </form>
     </section>
   );
 };
