@@ -9,8 +9,13 @@ import type { Character, CharactersOutletContext } from '../../types/character';
 import type { Occupation } from '../../types/occupations';
 import type { SubmitEvent } from 'react';
 
-import { createCharacter, updateCharacter } from '../../services/character';
+import {
+  createCharacter,
+  updateCharacter,
+  deleteCharacter as deleteCharacterRequest
+} from '../../services/character';
 import { getOccupations, updateOccupation } from '../../services/occupations';
+
 
 
 const Admin: React.FC = () => {
@@ -19,7 +24,8 @@ const Admin: React.FC = () => {
     loading,
     error,
     addCharacter: addToList,
-    updateCharacter: updateInList
+    updateCharacter: updateInList,
+    removeCharacter: removeFromList
   } = useOutletContext<CharactersOutletContext>();
 
   const [newName, setNewName] = useState('');
@@ -169,6 +175,26 @@ const Admin: React.FC = () => {
     }
   };
 
+  const deleteSelectedCharacter = async (character: Character) => {
+    const confirmed = window.confirm(
+      `¿Seguro que querés eliminar a ${character.name}?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteCharacterRequest(character.id);
+      removeFromList(character.id);
+
+      if (editingCharacter?.id === character.id) {
+        setEditingCharacter(null);
+        setEditForm(null);
+      }
+    } catch (reason) {
+      alert(reason instanceof Error ? reason.message : 'No se pudo eliminar el personaje');
+    }
+  };
+
+
   return (
     <section>
       <h1>Administrador</h1>
@@ -177,6 +203,9 @@ const Admin: React.FC = () => {
       <CharactersTable
         characters={characters}
         onEdit={startEditing}
+        onDelete={(character) => {
+          void deleteSelectedCharacter(character);
+        }}
       />
 
       {editingCharacter && editForm && (
