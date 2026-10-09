@@ -1,14 +1,17 @@
 package character
 
+import occupations "histodle-api/internal/occupation"
+
 type Character struct {
-	ID          uint   `gorm:"primaryKey" json:"id"`
-	Name        string `json:"name"`
-	Gender      string `json:"gender"`
-	Period      string `json:"period"`
-	Country     string `json:"country"`
-	Continent   string `json:"continent"`
-	KnowFor     string `json:"knowFor"`
-	Position    string `json:"position"`
-	BirthYear   int32  `json:"birthYear"`
-	YearOfDeath int32  `json:"yearOfDeath"`
+	ID          uint                     `gorm:"primaryKey" json:"id"`
+	Name        string                   `json:"name"`
+	Gender      string                   `json:"gender"`
+	Period      string                   `json:"period"`
+	Country     string                   `json:"country"`
+	Continent   string                   `json:"continent"`
+	KnowFor     string                   `json:"knowFor"`
+	Position    string                   `json:"position"`
+	BirthYear   int32                    `json:"birthYear"`
+	YearOfDeath int32                    `json:"yearOfDeath"`
+	Occupations []occupations.Occupation `gorm:"many2many:character_occupations;" json:"occupations"`
 }

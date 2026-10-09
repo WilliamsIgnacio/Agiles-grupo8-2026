@@ -10,6 +10,33 @@ import (
 	"gorm.io/gorm"
 )
 
+type characterRequest struct {
+	Name          string `json:"name"`
+	Gender        string `json:"gender"`
+	Period        string `json:"period"`
+	Country       string `json:"country"`
+	Continent     string `json:"continent"`
+	KnowFor       string `json:"knowFor"`
+	Position      string `json:"position"`
+	BirthYear     int32  `json:"birthYear"`
+	YearOfDeath   int32  `json:"yearOfDeath"`
+	OccupationIDs []uint `json:"occupationIds"`
+}
+
+func (request characterRequest) toCharacter() Character {
+	return Character{
+		Name:        request.Name,
+		Gender:      request.Gender,
+		Period:      request.Period,
+		Country:     request.Country,
+		Continent:   request.Continent,
+		KnowFor:     request.KnowFor,
+		Position:    request.Position,
+		BirthYear:   request.BirthYear,
+		YearOfDeath: request.YearOfDeath,
+	}
+}
+
 type Handler struct {
 	service *Service
 }
@@ -49,45 +76,52 @@ func (handler *Handler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	var character Character
-	if err := json.NewDecoder(r.Body).Decode(&character); err != nil {
+	var request characterRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	character, err := handler.service.Create(character)
+	created, err := handler.service.Create(
+		request.toCharacter(),
+		request.OccupationIDs,
+	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, character)
+	writeJSON(w, http.StatusCreated, created)
 }
 
 func (handler *Handler) Update(w http.ResponseWriter, r *http.Request) {
-    id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
-    if err != nil {
-        http.Error(w, "Id inválido para el personaje", http.StatusBadRequest)
-        return
-    }
+	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		http.Error(w, "Id inválido para el personaje", http.StatusBadRequest)
+		return
+	}
 
-    var character Character
-    if err := json.NewDecoder(r.Body).Decode(&character); err != nil {
-        http.Error(w, "JSON inválido", http.StatusBadRequest)
-        return
-    }
+	var request characterRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
 
-    updatedCharacter, err := handler.service.Update(uint(id), character)
-    if errors.Is(err, gorm.ErrRecordNotFound) {
-        http.Error(w, "Personaje no encontrado", http.StatusNotFound)
-        return
-    }
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
-        return
-    }
+	updatedCharacter, err := handler.service.Update(
+		uint(id),
+		request.toCharacter(),
+		request.OccupationIDs,
+	)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Personaje no encontrado", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-    writeJSON(w, http.StatusOK, updatedCharacter)
+	writeJSON(w, http.StatusOK, updatedCharacter)
 }
 
 func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {

@@ -28,6 +28,7 @@ const CharactersTable: React.FC<Props> = ({
           <th>Continente</th>
           <th>Conocido por</th>
           <th>Posición</th>
+          <th>Ocupaciones</th>
           <th>Nacimiento</th>
           <th>Fallecimiento</th>
           <th>Acciones</th>
@@ -50,6 +51,9 @@ const CharactersTable: React.FC<Props> = ({
               </button>
             </td>
             <td>{character.position}</td>
+            <td>
+              {character.occupations?.map((occupation) => occupation.name).join(', ') || 'Sin ocupaciones'}
+            </td>
             <td>{character.birthYear}</td>
             <td>{character.yearOfDeath}</td>
             <td>

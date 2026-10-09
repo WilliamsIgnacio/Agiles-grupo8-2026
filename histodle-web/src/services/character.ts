@@ -1,17 +1,17 @@
-import type { Character } from '../types/character';
+import type { Character, CharacterInput } from '../types/character';
 
 const API_BASE_URL = 'http://localhost:8080/characters';
 
 export const getCharacters = async (): Promise<Character[]> => {
   const response = await fetch(API_BASE_URL);
   if (!response.ok) {
-    throw new Error('Error al obtener los personajes: ${response.statusText}')
+    throw new Error(`Error al obtener los personajes: ${response.statusText}`);
   }
   const data: Character[] = await response.json()
   return data || [];
 };
 
-export const createCharacter = async (characterData: Omit<Character, 'id'>): Promise<Character> => {
+export const createCharacter = async (characterData: CharacterInput): Promise<Character> => {
   const response = await fetch(API_BASE_URL, {
     method: 'POST',
     headers: {
@@ -29,7 +29,7 @@ export const createCharacter = async (characterData: Omit<Character, 'id'>): Pro
 
 export const updateCharacter = async (
   id: number,
-  characterData: Omit<Character, 'id'>,
+  characterData: CharacterInput,
 ): Promise<Character> => {
   const response = await fetch(`${API_BASE_URL}/${id}`, {
     method: 'PUT',

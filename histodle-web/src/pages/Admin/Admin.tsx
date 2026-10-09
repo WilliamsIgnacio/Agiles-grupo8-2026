@@ -1,32 +1,26 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import type { SubmitEvent } from 'react';
 
+//importacion de componentes
 import CharactersTable from '../../components/CharactersTable/CharactersTable';
 import OccupationsTable from '../../components/OccupationsTable/OccupationsTable';
 
-import type { Character, CharactersOutletContext } from '../../types/character';
+//importacion de tipos
+import type { Character, CharacterInput } from '../../types/character';
 import type { Occupation } from '../../types/occupations';
-import type { SubmitEvent } from 'react';
 
-import {
-  createCharacter,
-  updateCharacter,
-  deleteCharacter as deleteCharacterRequest
-} from '../../services/character';
-import { getOccupations, updateOccupation } from '../../services/occupations';
-
+//importacion servicios
+import { getCharacters, createCharacter, updateCharacter, deleteCharacter } from '../../services/character';
+import { getOccupations, updateOccupation} from '../../services/occupations';
 
 
 const Admin: React.FC = () => {
-  const {
-    characters,
-    loading,
-    error,
-    addCharacter: addToList,
-    updateCharacter: updateInList,
-    removeCharacter: removeFromList
-  } = useOutletContext<CharactersOutletContext>();
+
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [occupations, setOccupations] = useState<Occupation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [newName, setNewName] = useState('');
   const [newGender, setNewGender] = useState('Masculino');
@@ -37,10 +31,26 @@ const Admin: React.FC = () => {
   const [newPosition, setNewPosition] = useState('');
   const [newBirthYear, setNewBirthYear] = useState(0);
   const [newYearOfDeath, setNewYearOfDeath] = useState(0);
+  const [newOccupationsIds, setNewOccupationsIds] = useState<number[]>([]);
 
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
-  const [editForm, setEditForm] = useState<Omit<Character, 'id'> | null>(null);
-  const [occupations, setOccupations] = useState<Occupation[]>([]);
+  const [editForm, setEditForm] = useState<CharacterInput | null>(null);
+
+
+  useEffect(() => {
+    Promise.all([getCharacters(), getOccupations()])
+      .then(([loadedCharacters, loadedOccupations]) => {
+        setCharacters(loadedCharacters);
+        setOccupations(loadedOccupations);
+      })
+      .catch((reason: unknown) => {
+        setError(
+          reason instanceof Error ? reason.message : 'Error al cargar los datos',
+        );
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   const [occupationsError, setOccupationsError] = useState<string | null>(null);
   const [editingOccupation, setEditingOccupation] = useState<Occupation | null>(null);
   const [occupationName, setOccupationName] = useState('');
@@ -64,8 +74,7 @@ const Admin: React.FC = () => {
   const addCharacter = async (event: SubmitEvent) => {
     event.preventDefault();
 
-    const characterDTO: Character = {
-      id: characters.length + 1,
+    const characterDTO: CharacterInput = {
       name: newName,
       gender: newGender,
       period: newPeriod,
@@ -74,23 +83,25 @@ const Admin: React.FC = () => {
       knowFor: newKnowFor,
       position: newPosition,
       birthYear: newBirthYear,
-      yearOfDeath: newYearOfDeath
+      yearOfDeath: newYearOfDeath,
+      occupationIds: newOccupationsIds
     };
 
     try {
       console.log(characterDTO);
       const createdCharacter = await createCharacter(characterDTO);
-      addToList(createdCharacter);
+      setCharacters((currentCharacters) => [...currentCharacters, createdCharacter])
 
       setNewName('');
-      setNewGender('');
-      setNewPeriod('');
+      setNewGender('Masculino');
+      setNewPeriod('Edad Antigua');
       setNewCountry('');
-      setNewContinent('');
+      setNewContinent('Europa');
       setNewKnowFor('');
       setNewPosition('');
       setNewBirthYear(0);
       setNewYearOfDeath(0);
+      setNewOccupationsIds([]);
     } catch (reason) {
       alert(reason instanceof Error ? reason.message : 'No se pudo crear el personaje');
     }
@@ -108,21 +119,22 @@ const Admin: React.FC = () => {
       knowFor: character.knowFor,
       position: character.position,
       birthYear: character.birthYear,
-      yearOfDeath: character.yearOfDeath
+      yearOfDeath: character.yearOfDeath,
+      occupationIds: character.occupations.map((occupation) => occupation.id)
     });
   };
 
 
-  const updateEditField = (
-    field: keyof Omit<Character, 'id'>,
-    value: string | number
-  ) => {
+  type EditableCharacter = Omit<CharacterInput, 'occupationIds'>;
+
+  function updateEditField<Key extends keyof EditableCharacter>(
+    field: Key,
+    value: EditableCharacter[Key],
+  ) {
     setEditForm((current) =>
-      current
-        ? { ...current, [field]: value } as Omit<Character, 'id'>
-        : current
+      current ? { ...current, [field]: value } : current
     );
-  };
+  }
 
 
   const saveCharacter = async (event: SubmitEvent) => {
@@ -136,7 +148,13 @@ const Admin: React.FC = () => {
         editForm
       );
 
-      updateInList(updatedCharacter);
+     // updateInList(updatedCharacter);
+      setCharacters((currentCharacters) =>
+        currentCharacters.map((character) =>
+          character.id === updatedCharacter.id ? updatedCharacter : character,
+        ),
+      );
+
       setEditingCharacter(null);
       setEditForm(null);
     } catch (reason) {
@@ -182,8 +200,10 @@ const Admin: React.FC = () => {
     if (!confirmed) return;
 
     try {
-      await deleteCharacterRequest(character.id);
-      removeFromList(character.id);
+      await deleteCharacter(character.id);
+      setCharacters((currentCharacters) =>
+        currentCharacters.filter((currentCharacter) => currentCharacter.id !== character.id),
+      );
 
       if (editingCharacter?.id === character.id) {
         setEditingCharacter(null);
@@ -193,6 +213,10 @@ const Admin: React.FC = () => {
       alert(reason instanceof Error ? reason.message : 'No se pudo eliminar el personaje');
     }
   };
+
+
+  const readOccupationIds = (select: HTMLSelectElement) =>
+    Array.from(select.selectedOptions, (option) => Number(option.value));
 
 
   return (
@@ -283,6 +307,28 @@ const Admin: React.FC = () => {
                 onChange={(event) => updateEditField('yearOfDeath', Number(event.target.value))}
               />
             </div>
+
+            <label>
+              Ocupaciones
+              <select
+                multiple
+                value={editForm.occupationIds.map(String)}
+                onChange={(event) => {
+                  const occupationIds = readOccupationIds(event.currentTarget);
+
+                  setEditForm((current) => 
+                    current ? { ...current, occupationIds } : current
+                  );
+                }}
+              >
+                {occupations.map((occupation) => (
+                  <option key={occupation.id} value={occupation.id}>
+                    {occupation.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <div>
               <button type="submit">Guardar cambios</button>
               <button
@@ -342,6 +388,24 @@ const Admin: React.FC = () => {
         <div>
           Anio de fallecimiento: <input value={newYearOfDeath} onChange={(event) => setNewYearOfDeath(Number(event.target.value))} />
         </div>
+
+        <label>
+          Ocupaciones
+          <select 
+            multiple
+            value={newOccupationsIds.map(String)}
+            onChange={(event) => 
+              setNewOccupationsIds(readOccupationIds(event.currentTarget))
+            }
+          >
+            {occupations.map((occupation) => (
+              <option key={occupation.id} value={occupation.id}>
+                {occupation.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <div>
           <button type="submit">Agregar Personaje</button>
         </div>
