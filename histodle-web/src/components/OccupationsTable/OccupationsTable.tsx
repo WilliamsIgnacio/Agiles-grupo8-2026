@@ -5,9 +5,10 @@ import type { Occupation } from '../../types/occupations';
 interface Props {
   occupations: Occupation[];
   onEdit: (occupation: Occupation) => void;
+  onDelete: (occupation: Occupation) => void;
 }
 
-const OccupationsTable: React.FC<Props> = ({ occupations, onEdit }) => (
+const OccupationsTable: React.FC<Props> = ({ occupations, onEdit, onDelete }) => (
   <table>
     <thead>
       <tr>
@@ -22,6 +23,9 @@ const OccupationsTable: React.FC<Props> = ({ occupations, onEdit }) => (
           <td>
             <button type="button" onClick={() => onEdit(occupation)}>
               Editar
+            </button>
+            <button type="button" onClick={() => onDelete(occupation)}>
+              Eliminar
             </button>
           </td>
         </tr>

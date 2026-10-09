@@ -11,8 +11,17 @@ import type { Character, CharacterInput } from '../../types/character';
 import type { Occupation } from '../../types/occupations';
 
 //importacion servicios
-import { getCharacters, createCharacter, updateCharacter, deleteCharacter } from '../../services/character';
-import { getOccupations, updateOccupation} from '../../services/occupations';
+import {
+  getCharacters,
+  createCharacter,
+  updateCharacter,
+  deleteCharacter,
+} from '../../services/character';
+import {
+  getOccupations,
+  updateOccupation,
+  deleteOccupation,
+} from '../../services/occupations';
 
 
 const Admin: React.FC = () => {
@@ -214,10 +223,28 @@ const Admin: React.FC = () => {
     }
   };
 
-
   const readOccupationIds = (select: HTMLSelectElement) =>
     Array.from(select.selectedOptions, (option) => Number(option.value));
 
+  const removeOccupation = async (occupation: Occupation) => {
+    if (!window.confirm(`¿Está seguro de eliminar la ocupación "${occupation.name}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteOccupation(occupation.id);
+      setOccupations((currentOccupations) =>
+        currentOccupations.filter((currentOccupation) => currentOccupation.id !== occupation.id),
+      );
+      if (editingOccupation?.id === occupation.id) {
+        setEditingOccupation(null);
+        setOccupationName('');
+      }
+      alert('La ocupación se eliminó correctamente.');
+    } catch (reason) {
+      alert(reason instanceof Error ? reason.message : 'No se pudo eliminar la ocupación');
+    }
+  };
 
   return (
     <section>
@@ -418,6 +445,7 @@ const Admin: React.FC = () => {
         <OccupationsTable
           occupations={occupations}
           onEdit={startEditingOccupation}
+          onDelete={removeOccupation}
         />
       )}
 
