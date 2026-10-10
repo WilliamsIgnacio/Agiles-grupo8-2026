@@ -13,11 +13,13 @@ const MOCK_EINSTEIN: CharacterTarget = {
   country: 'Alemania',
   continent: 'Europa',
   knowFor:
-    'Teoría de la relatividad y explicación del efecto fotoeléctrico; recibió el Premio Nobel de Física de 1921',
-  position: '',
+    'Teoría de la relatividad',
+  position: 'Físico',
   birthYear: 1879,
   yearOfDeath: 1955,
-  occupations: [],
+  occupations: [
+    { id: 5, name: 'Científico' },
+  ],
   /* 
   Se tiene que completar manualmente segun las ocupaciones y como las genere la base de datos deberia quedar de la siguiente forma:
   occupations: [
@@ -29,17 +31,19 @@ const MOCK_EINSTEIN: CharacterTarget = {
 };
 
 const MOCK_MARADONA: CharacterTarget = {
-  name: 'Diego Armando Maradona',
+  name: 'Diego Maradona',
   gender: 'Masculino',
   period: 'Edad Contemporanea',
   country: 'Argentina',
   continent: 'America',
   knowFor:
-    'Ser considerado uno de los mejores futbolistas de la historia; campeón del Mundo con Argentina en México 1986; el “Gol del Siglo” y la “Mano de Dios” frente a Inglaterra (1986)',
-  position: '',
+    'Campeón del mundo con Argentina en 1986',
+  position: 'Mediocampista ofensivo',
   birthYear: 1960,
   yearOfDeath: 2020,
-  occupations: [],
+  occupations: [
+    { id: 16, name: 'Futbolista' }
+  ],
   /* 
   Se tiene que completar manualmente segun las ocupaciones y como las genere la base de datos deberia quedar de la siguiente forma:
   occupations: [
@@ -91,9 +95,10 @@ const Level = () => {
   
   const { nroLevel } = useParams<{ nroLevel: string }>();
   const levelNumber = Number(nroLevel);
-  const targetMock = LEVEL_TARGETS[levelNumber];
 
   const [characters, setCharacters] = useState<Character[]>([]);
+  const [maradonaTarget, setMaradonaTarget] =
+    useState<CharacterTarget>(MOCK_MARADONA);
   const [guesses, setGuesses] = useState<Character[]>([]);
   const [guessName, setGuessName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -101,10 +106,33 @@ const Level = () => {
   const [message, setMessage] = useState('');
   const [attempts, setAttempts] = useState(0);
 
+  const targetMock =
+    levelNumber === 2 ? maradonaTarget : LEVEL_TARGETS[levelNumber];
 
   useEffect(() => {
     getCharacters()
-      .then(setCharacters)
+      .then((loadedCharacters) => {
+        setCharacters(loadedCharacters);
+
+        const maradona = loadedCharacters.find((character) =>
+          normalizeName(character.name).includes('maradona'),
+        );
+
+        if (maradona) {
+          setMaradonaTarget({
+            name: maradona.name,
+            gender: maradona.gender,
+            period: maradona.period,
+            country: maradona.country,
+            continent: maradona.continent,
+            knowFor: maradona.knowFor,
+            position: maradona.position,
+            birthYear: maradona.birthYear,
+            yearOfDeath: maradona.yearOfDeath,
+            occupations: maradona.occupations,
+          });
+        }
+      })
       .catch((reason: unknown) => {
         setError(
           reason instanceof Error ? reason.message : 'Error al cargar personajes',
