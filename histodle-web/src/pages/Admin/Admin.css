@@ -4,10 +4,11 @@
 
 .admin-container {
     max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
+    margin: 30px auto;
+    padding: 2rem;
     color: #ffffff;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border-radius: 20px;
 }
 
 .admin-subtitle {

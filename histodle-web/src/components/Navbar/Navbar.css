@@ -2,41 +2,72 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
-    background-color: #0b080d;
+    padding: 1.15rem 2.2rem 1rem;
+    background: rgba(10, 8, 16, 0.94);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 -1px 0 rgba(196, 148, 235, 0.08);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.navbar-brand {
-    display: flex;
+.titulo {
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 0.85rem;
+    color: #f5f0fb;
     text-decoration: none;
 }
 
-.brand-title {
-    color: #ffffff;
-    font-size: 1.5rem;
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    transform: translateY(-1px);
+}
+
+.brand-dot {
+    display: block;
+    width: 0.62rem;
+    height: 0.62rem;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.brand-dot-one {
+    background: #efca59;
+}
+
+.brand-dot-two {
+    background: #d28ef2;
+}
+
+.brand-dot-three {
+    background: #a9a3b8;
+}
+
+.brand-text {
+    font-size: 2rem;
+    line-height: 1;
+    letter-spacing: -0.08em;
     font-weight: 700;
-    font-family: 'Georgia', serif; 
-    letter-spacing: -0.5px;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: #f5f0fb;
 }
 
 .navbar-links {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.7rem;
 }
 
 .nav-item {
-    color: #a099a8;
+    color: rgba(232, 222, 242, 0.7);
     text-decoration: none;
     font-size: 0.95rem;
-    font-weight: 500;
-    padding: 8px 18px;
-    border-radius: 20px;
+    font-weight: 600;
+    padding: 0.7rem 1.15rem;
+    border-radius: 1.2rem;
     transition: all 0.2s ease-in-out;
+    letter-spacing: 0.01em;
 }
 
 .nav-item:hover {
@@ -44,6 +75,7 @@
 }
 
 .nav-item.active {
-    background-color: #b084d5;
-    color: #ffffff;
+    background: rgba(172, 103, 211, 0.18);
+    color: #f7f3ff;
+    box-shadow: inset 0 0 0 1px rgba(171, 134, 206, 0.22);
 }
