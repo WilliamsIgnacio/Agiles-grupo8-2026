@@ -6,6 +6,8 @@ import Navbar from './components/Navbar/Navbar';
 import Admin, { CharacterFormOutlet, CharactersTableOutlet } from './pages/Admin/Admin';
 import Jugar from './pages/Jugar/Jugar';
 import OccupationsTable from './components/OccupationsTable/OccupationsTable';
+import Level from './components/Level/Level';
+
 
 const MainLayout: React.FC = () => {
     return (
@@ -24,6 +26,7 @@ const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
             { path: 'jugar', element: <Jugar /> },
+            { path: 'jugar/nivel/:nroLevel', element: <Level /> },
             { 
                 path: 'admin', 
                 element: <Admin /> ,

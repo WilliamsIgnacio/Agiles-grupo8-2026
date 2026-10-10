@@ -16,7 +16,7 @@ func New(db *gorm.DB) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"http://localhost:5173"},
+		AllowedOrigins: []string{"http://localhost:5173", "http://localhost:3000"},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
 	}))
@@ -32,9 +32,9 @@ func New(db *gorm.DB) http.Handler {
 	r.Delete("/characters/{id}", characterHandler.Delete)
 
 	//rutas de ocupaciones
-	occupationRepository := occupations.NewOccupationRepository(db)
-	occupationService := occupations.NewService(occupationRepository)
-	occupationHandler := occupations.NewHandler(occupationService)
+	occupationRepository := occupation.NewOccupationRepository(db)
+	occupationService := occupation.NewService(occupationRepository)
+	occupationHandler := occupation.NewHandler(occupationService)
 
 	r.Get("/occupations", occupationHandler.List)
 	r.Get("/occupations/{id}", occupationHandler.Get)

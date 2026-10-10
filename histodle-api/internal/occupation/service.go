@@ -1,4 +1,4 @@
-package occupations
+package occupation
 
 import (
 	"fmt"
