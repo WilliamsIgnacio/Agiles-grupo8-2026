@@ -1,6 +1,6 @@
 import type { Character, CharacterInput } from '../types/character';
 
-const API_BASE_URL = 'http://localhost:8080/characters';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/characters`;
 
 export const getCharacters = async (): Promise<Character[]> => {
   const response = await fetch(API_BASE_URL);
