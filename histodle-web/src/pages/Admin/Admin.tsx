@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate, useOutletContext, useParams } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { Occupation } from '../../types/occupations';
 import type { Character, CharacterInput } from '../../types/character';
 import CharacterForm from '../../components/CharacterForm/CharacterForm';
@@ -22,6 +22,7 @@ const AdminLayout: React.FC = () => {
         const [occupations, setOccupations] = useState<Occupation[]>([]);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState<string | null>(null);
+        const location = useLocation();
 
     useEffect(() => {
         Promise.all([getCharacters(), getOccupations()])
@@ -34,7 +35,7 @@ const AdminLayout: React.FC = () => {
             setError(reason instanceof Error ? reason.message : 'Error al cargar los datos');
         })
         .finally(() => setLoading(false));
-    }, []);
+    }, [location.pathname]);
 
     if (loading) return <p className="loading-text">Cargando datos...</p>;
     if (error) return <p className="error-text" role="alert">{error}</p>;
