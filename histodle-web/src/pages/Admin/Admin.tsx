@@ -47,30 +47,30 @@ const AdminLayout: React.FC = () => {
 
     return (
         <section className="admin-container">
-        <h1>Administrador</h1>
-        <p className="admin-subtitle">
-            Gestioná los personajes, ocupaciones y niveles del juego.
-        </p>
+            <h1>Administrador</h1>
+            <p className="admin-subtitle">
+                Gestioná los personajes, ocupaciones y niveles del juego.
+            </p>
 
-        <div className="tabs-container">
-            <NavLink
-            to="/admin/characters"
-            className={({ isActive }) => `tab-button ${isActive ? 'active' : ''}`}
-            >
-            Personajes <span className="tab-count">{characters.length}</span>
-            </NavLink>
+            <div className="tabs-container">
+                <NavLink
+                to="/admin/characters"
+                className={({ isActive }) => `tab-button ${isActive ? 'active' : ''}`}
+                >
+                Personajes <span className="tab-count">{characters.length}</span>
+                </NavLink>
 
-            <NavLink
-            to="/admin/occupations"
-            className={({ isActive }) => `tab-button ${isActive ? 'active' : ''}`}
-            >
-            Ocupaciones <span className="tab-count">{occupationsCount}</span>
-            </NavLink>
-        </div>
+                <NavLink
+                to="/admin/occupations"
+                className={({ isActive }) => `tab-button ${isActive ? 'active' : ''}`}
+                >
+                Ocupaciones <span className="tab-count">{occupationsCount}</span>
+                </NavLink>
+            </div>
 
-        <div className="admin-content">
-            <Outlet context={{ characters, occupations, removeCharacter }} />
-        </div>
+            <div className="admin-content">
+                <Outlet context={{ characters, occupations, removeCharacter }} />
+            </div>
         </section>
     );
 };

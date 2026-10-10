@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 
 import { getCharacters } from '../../services/character';
 import type { Character } from '../../types/character';
+import './Level.css';
 
 type CharacterTarget = Omit<Character, 'id'>;
 
@@ -63,32 +64,8 @@ const MAX_ATTEMPTS = 10;
 
 const normalizeName = (name: string) => name.trim().toLocaleLowerCase();
 
-// FUNCIONES DE COMPARACION
-const compareValue = (matches: boolean) =>
-  matches ? 'Coincide' : 'No coincide';
-
-const compareYear = (guess: number, target: number) => {
-  if (guess === target) return 'Coincide';
-  return guess > target ? 'Mayor' : 'Menor';
-};
-
-const compareOccupations = (
-  guess: Character,
-  target: CharacterTarget,
-): string => {
-  if (guess.occupations.length === 0) return 'Sin ocupaciones';
-
-  const targetNames = new Set(
-    target.occupations.map((occupation) => normalizeName(occupation.name)),
-  );
-
-  return guess.occupations
-    .map((occupation) => {
-      const matches = targetNames.has(normalizeName(occupation.name));
-      return `${occupation.name}: ${matches ? 'Coincide' : 'No coincide'}`;
-    })
-    .join(' | ');
-}
+const getMatchClass = (matches: boolean) =>
+  matches ? 'guess-value match' : 'guess-value mismatch';
 
 
 const Level = () => {
@@ -178,7 +155,7 @@ const Level = () => {
     }
 
     handleAttempt();
-    setGuesses((currentGuesses) => [...currentGuesses, guess]);
+    setGuesses((currentGuesses) => [guess, ...currentGuesses]);
     setGuessName('');
     setMessage('Intento agregado.');
   };
@@ -198,7 +175,7 @@ const Level = () => {
   }
 
   return (
-    <section>
+    <section className="level-page">
       <h1>Nivel {levelNumber}</h1>
 
       <form onSubmit={submitGuess}>
@@ -251,15 +228,52 @@ const Level = () => {
             {guesses.map((guess) => (
               <tr key={guess.id}>
                 <td>{guess.name}</td>
-                <td>{compareValue(guess.gender === targetMock.gender)}</td>
-                <td>{compareValue(guess.period === targetMock.period)}</td>
-                <td>{compareValue(guess.country === targetMock.country)}</td>
-                <td>{compareValue(guess.continent === targetMock.continent)}</td>
-                <td>{compareValue(guess.knowFor === targetMock.knowFor)}</td>
-                <td>{compareValue(guess.position === targetMock.position)}</td>
-                <td>{compareYear(guess.birthYear, targetMock.birthYear)}</td>
-                <td>{compareYear(guess.yearOfDeath, targetMock.yearOfDeath)}</td>
-                <td>{compareOccupations(guess, targetMock)}</td>
+                <td className={getMatchClass(guess.gender === targetMock.gender)}>
+                  {guess.gender}
+                </td>
+                <td className={getMatchClass(guess.period === targetMock.period)}>
+                  {guess.period}
+                </td>
+                <td className={getMatchClass(guess.country === targetMock.country)}>
+                  {guess.country}
+                </td>
+                <td className={getMatchClass(guess.continent === targetMock.continent)}>
+                  {guess.continent}
+                </td>
+                <td className={getMatchClass(guess.knowFor === targetMock.knowFor)}>
+                  {guess.knowFor}
+                </td>
+                <td className={getMatchClass(guess.position === targetMock.position)}>
+                  {guess.position}
+                </td>
+                <td className={getMatchClass(guess.birthYear === targetMock.birthYear)}>
+                  {guess.birthYear}
+                </td>
+                <td className={getMatchClass(guess.yearOfDeath === targetMock.yearOfDeath)}>
+                  {guess.yearOfDeath}
+                </td>
+                <td className="occupation-cell">
+                  {guess.occupations.length > 0 ? (
+                    guess.occupations.map((occupation) => {
+                      const matches = targetMock.occupations.some(
+                        (targetOccupation) =>
+                          normalizeName(targetOccupation.name) ===
+                          normalizeName(occupation.name),
+                      );
+
+                      return (
+                        <span
+                          className={getMatchClass(matches)}
+                          key={occupation.id}
+                        >
+                          {occupation.name}
+                        </span>
+                      );
+                    })
+                  ) : (
+                    <span className="guess-value mismatch">Sin ocupaciones</span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

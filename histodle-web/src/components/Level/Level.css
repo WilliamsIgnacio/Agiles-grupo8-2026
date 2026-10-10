@@ -1,0 +1,375 @@
+* {
+    box-sizing: border-box;
+}
+
+main {
+    position: relative;
+    z-index: 1;
+    background: transparent; /* Fuerza a que no tenga fondo sólido */
+}
+
+.level-page {
+    padding: 2rem;
+    border-radius: 20px;
+}
+
+html, body, #root {
+    margin: 0;
+    min-height: 100%;
+    min-height: 100vh;
+    background: #07070d;
+    color: #f4f2f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    position: relative;
+    background: #07070d;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: radial-gradient(rgba(171, 122, 202, 0.22) 1.2px, transparent 1.2px);
+    background-size: 18px 18px;
+    background-repeat: repeat;
+    opacity: 0.75;
+    pointer-events: none;
+    z-index: 0;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+main {
+    position: relative;
+    z-index: 1;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+main > section:has(> form) {
+    width: min(100% - 3rem, 1100px);
+    margin: 3rem auto;
+    color: #f4f2f9;
+}
+
+main > section:has(> form) > h1 {
+    margin: 0 0 1.25rem;
+    color: #f6f1fc;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    line-height: 1.05;
+}
+
+main > section:has(> form) > form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: end;
+    margin: 0 0 1.25rem;
+    padding: 1rem;
+    border: 1px solid rgba(190, 135, 224, 0.55);
+    border-radius: 1.25rem;
+    background: #19151f;
+}
+
+main > section:has(> form) > form label {
+    grid-column: 1 / -1;
+    color: #c7bdcf;
+    font-size: 0.9rem;
+}
+
+main > section:has(> form) > form input {
+    width: 100%;
+    min-width: 0;
+    min-height: 3.4rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(196, 152, 226, 0.22);
+    border-radius: 0.8rem;
+    outline: none;
+    background: #100d16;
+    color: #f4f2f9;
+    font: inherit;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+main > section:has(> form) > form input:focus {
+    border-color: #b52bd4;
+    box-shadow: 0 0 0 3px rgba(181, 43, 212, 0.16);
+}
+
+main > section:has(> form) > form input:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+main > section:has(> form) > form button {
+    min-height: 3.4rem;
+    padding: 0.75rem 1.5rem;
+    border: 0;
+    border-radius: 0.8rem;
+    background: #ae2bd0;
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 160ms ease, opacity 160ms ease;
+}
+
+main > section:has(> form) > form button:hover:not(:disabled) {
+    background: #c03be0;
+}
+
+main > section:has(> form) > form button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+main > section:has(> form) > p[role='status'],
+main > section:has(> form) > h2 {
+    color: #e5dce9;
+}
+
+main > section:has(> form) > table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid rgba(190, 135, 224, 0.2);
+    border-spacing: 0;
+    border-radius: 1.2rem;
+    background: #19151f;
+    scrollbar-color: #55365f #19151f;
+}
+
+main > section:has(> form) > table th,
+main > section:has(> form) > table td {
+    min-width: 8rem;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid rgba(190, 135, 224, 0.12);
+    color: #e5dfeb;
+    text-align: left;
+    white-space: nowrap;
+}
+
+main > section:has(> form) > table th {
+    background: #211a29;
+    color: #cdb9d9;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+main > section:has(> form) > table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+main > section:has(> form) > a {
+    display: inline-flex;
+    margin-top: 1.25rem;
+    color: #d48ce9;
+    font-weight: 600;
+}
+
+main > section:has(> form) > a:hover {
+    color: #efc0ff;
+}
+
+@media (max-width: 600px) {
+    main > section:has(> form) {
+        width: min(100% - 1.5rem, 1100px);
+        margin: 2rem auto;
+    }
+
+    main > section:has(> form) > form {
+        grid-template-columns: 1fr;
+    }
+
+    main > section:has(> form) > form label {
+        grid-column: auto;
+    }
+}
+
+main > section:has(> form) > table {
+    display: block;
+    overflow: visible;
+    padding: 1.25rem;
+    border: 0;
+    border-radius: 1.75rem;
+    background: #19151f;
+    box-shadow: 0 0 0 1px rgba(190, 135, 224, 0.2);
+}
+
+main > section:has(> form) > table thead {
+    display: none;
+}
+
+main > section:has(> form) > table tbody {
+    display: grid;
+    gap: 1.25rem;
+}
+
+main > section:has(> form) > table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    padding: 1.2rem;
+    border: 1px solid rgba(190, 135, 224, 0.19);
+    border-radius: 1.4rem;
+    background: #19151f;
+}
+
+main > section:has(> form) > table tbody td {
+    display: flex;
+    min-width: 0;
+    min-height: 4.5rem;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 0;
+    border-radius: 1rem;
+    background: #302c36;
+    color: #e5dfeb;
+    font-size: 0.98rem;
+    font-weight: 600;
+    white-space: normal;
+}
+
+main > section:has(> form) > table tbody td::before {
+    color: rgba(239, 230, 246, 0.62);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+main > section:has(> form) > table tbody td:nth-child(1) {
+    min-height: 4.25rem;
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding: 0.25rem 0 0.75rem;
+    background: transparent;
+    color: #f6f1fc;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    font-weight: 700;
+}
+
+main > section:has(> form) > table tbody td:nth-child(1)::before {
+    content: '✦';
+    display: grid;
+    width: 3.8rem;
+    height: 3.8rem;
+    flex: 0 0 3.8rem;
+    place-items: center;
+    border-radius: 1.15rem;
+    background: #b32bd0;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 1.65rem;
+    letter-spacing: 0;
+}
+
+main > section:has(> form) > table tbody td:nth-child(2)::before { content: 'Género'; }
+main > section:has(> form) > table tbody td:nth-child(3)::before { content: 'Período'; }
+main > section:has(> form) > table tbody td:nth-child(4)::before { content: 'País'; }
+main > section:has(> form) > table tbody td:nth-child(5)::before { content: 'Continente'; }
+main > section:has(> form) > table tbody td:nth-child(6)::before { content: 'Conocido por'; }
+main > section:has(> form) > table tbody td:nth-child(7)::before { content: 'Posición'; }
+main > section:has(> form) > table tbody td:nth-child(8)::before { content: 'Nacimiento'; }
+main > section:has(> form) > table tbody td:nth-child(9)::before { content: 'Fallecimiento'; }
+main > section:has(> form) > table tbody td:nth-child(10)::before { content: 'Ocupaciones'; }
+
+main > section:has(> form) > table tbody td.guess-value {
+    justify-content: space-between;
+}
+
+main > section:has(> form) > table tbody td.guess-value.match {
+    background: #20c995;
+    color: #17131c;
+}
+
+main > section:has(> form) > table tbody td.guess-value.match::before {
+    color: rgba(23, 19, 28, 0.62);
+}
+
+main > section:has(> form) > table tbody td.guess-value.mismatch {
+    background: #302c36;
+    color: #e5dfeb;
+}
+
+main > section:has(> form) > table tbody td.guess-value.mismatch::before {
+    color: rgba(239, 230, 246, 0.62);
+}
+
+main > section:has(> form) > table tbody td.occupation-cell {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    background: #302c36;
+}
+
+main > section:has(> form) > table tbody td.occupation-cell::before {
+    width: 100%;
+    flex-basis: 100%;
+    color: rgba(239, 230, 246, 0.62);
+}
+
+main > section:has(> form) > table tbody td.occupation-cell .guess-value {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+}
+
+main > section:has(> form) > table tbody td.occupation-cell .guess-value.match {
+    background: #20c995;
+    color: #17131c;
+}
+
+main > section:has(> form) > table tbody td.occupation-cell .guess-value.mismatch {
+    background: #45414b;
+    color: #e5dfeb;
+}
+
+@media (max-width: 700px) {
+    main > section:has(> form) > table {
+        padding: 0.75rem;
+        border-radius: 1.25rem;
+    }
+
+    main > section:has(> form) > table tbody tr {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 0.75rem;
+    }
+
+    main > section:has(> form) > table tbody td:nth-child(1) {
+        font-size: 1.55rem;
+    }
+}
+
+@media (max-width: 420px) {
+    main > section:has(> form) > table tbody tr {
+        grid-template-columns: 1fr;
+    }
+
+    main > section:has(> form) > table tbody td:nth-child(1) {
+        grid-column: auto;
+    }
+}
