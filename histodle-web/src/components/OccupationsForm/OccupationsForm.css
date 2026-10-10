@@ -1,0 +1,72 @@
+
+.occupation-inline-edit-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #12091c;
+  padding: 0.35rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.occupation-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.occupation-inline-input {
+  background-color: #160c23;
+  border: 2px solid #a855f7;
+  border-radius: 9999px;
+  color: #ffffff;
+  padding: 0.45rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  outline: none;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+  transition: all 0.2s ease;
+  min-width: 180px;
+}
+
+.occupation-inline-input:focus {
+  border-color: #c026d3;
+  box-shadow: 0 0 14px rgba(192, 38, 211, 0.6);
+}
+
+.inline-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.confirm-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7, #c026d3);
+  color: #ffffff;
+}
+
+.confirm-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.cancel-btn {
+  background: transparent;
+  color: #ffffff;
+  padding: 6px;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+.cancel-btn:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
