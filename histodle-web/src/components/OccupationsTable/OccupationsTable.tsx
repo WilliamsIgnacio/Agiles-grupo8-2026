@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import type { Occupation } from '../../types/occupations';
-import { createOccupation, getOccupations, updateOccupation } from '../../services/occupations';
+import {
+    createOccupation,
+    deleteOccupation,
+    getOccupations,
+    updateOccupation,
+} from '../../services/occupations';
 import OccupationForm from '../OccupationsForm/OccupationsForm';
 import './OccupationsTable.css';
 
@@ -69,7 +74,7 @@ const OccupationsTable: React.FC<Props> = ({ occupations }) => {
             if (window.confirm(`¿Estás seguro de que deseas eliminar la ocupación "${occupation.name}"?`)) {
                 setDeletingOccupationId(occupation.id);
                 setError(null);
-                await fetch(`http://localhost:8080/occupations/${occupation.id}`, { method: 'DELETE' });
+                await deleteOccupation(occupation.id);
                 setLoadedOccupations((prev) => prev.filter((o) => o.id !== occupation.id));
             }
         } catch (reason: unknown) {
