@@ -1,48 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Character } from '../../types/character';
-import type { Occupation } from '../../types/occupations';
-import { getCharacters } from '../../services/character';
-import { getOccupations } from '../../services/occupations';
 import CharactersDetail from '../CharactersDetail/CharactersDetail';
 import './CharactersTable.css';
 
 
 interface CharactersTableProps {
-    characters?: Character[]; 
+    characters: Character[];
     onSelectCharacter?: (character: Character) => void;
     onEdit: (character: Character) => void;
     onDelete: (character: Character) => Promise<void> | void;
 }
 
 const CharactersTable: React.FC<CharactersTableProps> = ({
-    characters: initialCharacters,
+    characters,
     onSelectCharacter,
     onEdit,
     onDelete,
 }) => {
     const navigate = useNavigate();
-    const [characters, setCharacters] = useState<Character[]>([]);
-    const [occupations, setOccupations] = useState<Occupation[]>([]);
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [loading, setLoading] = useState(!initialCharacters);
-    const [error, setError] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
-
-
-    useEffect(() => {
-        Promise.all([getCharacters(), getOccupations()])
-        .then(([loadedCharacters, loadedOccupations]) => {
-            setCharacters(loadedCharacters);
-            setOccupations(loadedOccupations);
-        })
-        .catch((reason: unknown) => {
-            setError(reason instanceof Error ? reason.message : 'Error al cargar los datos');
-        })
-        .finally(() => setLoading(false));
-    }, []);
-
 
     const handleSelect = (character: Character) => {
         setSelectedCharacter(character);
@@ -61,7 +40,6 @@ const CharactersTable: React.FC<CharactersTableProps> = ({
             if (window.confirm(`¿Estás seguro de que deseas eliminar al personaje "${character.name}"?`)) {
                 setActionError(null);
                 await onDelete(character);
-                setCharacters((prev) => prev.filter((c) => c.id !== character.id));
                 setSelectedCharacter((current) => current?.id === character.id ? null : current);
                 alert(`Personaje "${character.name}" eliminado correctamente.`);
             }
@@ -69,9 +47,6 @@ const CharactersTable: React.FC<CharactersTableProps> = ({
             setActionError(reason instanceof Error ? reason.message : `Error al eliminar el personaje "${character.name}".`);
         }
     };
-
-    if (loading) return <p className="loading-text">Cargando personajes...</p>;
-    if (error) return <p className="error-text">{error}</p>;
 
     if (selectedCharacter) {
         return (
