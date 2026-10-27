@@ -1,73 +1,121 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getCategories } from '../../services/categories';
+import type { Category } from '../../types/category';
 import './Jugar.css';
 
 const Jugar: React.FC = () => {
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState('all');
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
     const levels = [
         {
-        number: 1,
-        title: 'Mente brillante',
-        description: 'Un genio que cambió nuestra forma de entender el universo.',
-        difficulty: 'Fácil',
-        attempts: 10,
+            number: 1,
+            title: 'Desafío histórico',
+            description: 'Descubrí qué personaje se esconde detrás de las pistas.',
+            difficulty: 'Fácil',
+            attempts: 10,
         },
         {
-        number: 2,
-        title: 'Barrilete Cosmico',
-        description: 'Arranca por la derecha el genio del futbol mundial',
-        difficulty: 'Fácil',
-        attempts: 10,
+            number: 2,
+            title: 'Otro personaje misterioso',
+            description: 'Elegí personajes y usá las pistas para acercarte al objetivo.',
+            difficulty: 'Fácil',
+            attempts: 10,
         },
     ];
+
+    useEffect(() => {
+        getCategories()
+            .then(setCategories)
+            .catch((reason: unknown) => {
+                setError(
+                    reason instanceof Error
+                        ? reason.message
+                        : 'Error al cargar las categorías',
+                );
+            })
+            .finally(() => setCategoriesLoading(false));
+    }, []);
 
     return (
         <div className="jugar-page">
             <p className="eyebrow">Un personaje. pocas pistas.</p>
             <h1 className="jugar-title">¿Quién se esconde detrás de la historia?</h1>
             <p className="subtitle">
-                Elegí un nivel y escribí cualquier personaje. Cada intento te muestra qué tan cerca estás del misterioso.
+                Elegí una categoría y un nivel. El personaje objetivo se elige al azar
+                entre los disponibles para esa selección.
             </p>
+
+            <div className="category-selector">
+                <label htmlFor="game-category">Categoría de personajes</label>
+                <select
+                    id="game-category"
+                    value={selectedCategoryId}
+                    onChange={(event) => setSelectedCategoryId(event.target.value)}
+                    disabled={categoriesLoading}
+                >
+                    <option value="all">Todas las categorías</option>
+                    {categories.map((category: Category) => (
+                        <option key={category.id} value={category.id}>
+                            {category.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {categoriesLoading && <p role="status">Cargando categorías...</p>}
+            {error && (
+                <p className="category-error" role="alert">
+                    {error}
+                </p>
+            )}
 
             <div className="legend-row">
                 <div className="legend-item">
-                <span className="legend-dot coincide"></span>
-                <span>Coincide</span>
+                    <span className="legend-dot coincide"></span>
+                    <span>Coincide</span>
                 </div>
                 <div className="legend-item">
-                <span className="legend-dot cerca"></span>
-                <span>Cerca</span>
+                    <span className="legend-dot cerca"></span>
+                    <span>Cerca</span>
                 </div>
                 <div className="legend-item">
-                <span className="legend-dot no-coincide"></span>
-                <span>No coincide</span>
+                    <span className="legend-dot no-coincide"></span>
+                    <span>No coincide</span>
                 </div>
                 <div className="legend-item">
-                <span className="legend-dot mayor"></span>
-                <span>El misterioso tiene un valor mayor</span>
+                    <span className="legend-dot mayor"></span>
+                    <span>El misterioso tiene un valor mayor</span>
                 </div>
             </div>
 
             <h2 className="levels-title">Elegí un nivel</h2>
             <div className="level-grid">
                 {levels.map((level) => (
-                <div className="level-card" key={level.number}>
-                    <div className="level-header">
-                    <span className="level-badge">Nivel {level.number}</span>
-                    <span className={`level-difficulty ${level.difficulty.toLowerCase()}`}>
-                        {level.difficulty}
-                    </span>
-                    </div>
+                    <div className="level-card" key={level.number}>
+                        <div className="level-header">
+                            <span className="level-badge">Nivel {level.number}</span>
+                            <span className={`level-difficulty ${level.difficulty.toLowerCase()}`}>
+                                {level.difficulty}
+                            </span>
+                        </div>
 
-                    <h3>{level.title}</h3>
-                    <p className="level-description">{level.description}</p>
+                        <h3>{level.title}</h3>
+                        <p className="level-description">{level.description}</p>
 
-                    <div className="level-footer">
-                    <span className="attempts">{level.attempts} intentos</span>
-                    <Link className="play-link" to={`/jugar/nivel/${level.number}`}>
-                        Jugar <span aria-hidden="true">→</span>
-                    </Link>
+                        <div className="level-footer">
+                            <span className="attempts">{level.attempts} intentos</span>
+                            <Link
+                                className="play-link"
+                                to={`/jugar/nivel/${level.number}?categoryId=${selectedCategoryId}`}
+                            >
+                                Jugar <span aria-hidden="true">→</span>
+                            </Link>
+                        </div>
                     </div>
-                </div>
                 ))}
             </div>
         </div>

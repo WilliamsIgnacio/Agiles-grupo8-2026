@@ -26,23 +26,32 @@ func (service *Service) GetOccupationByID(id uint) (Occupation, error) {
 }
 
 func (service *Service) CreateOccupation(occupation Occupation) (Occupation, error) {
-	if strings.TrimSpace(occupation.Name) == "" {
-		return Occupation{}, fmt.Errorf("El nombre de la ocupación no puede estar vacío")
-	}
-	return service.repository.Create(occupation)
+    if strings.TrimSpace(occupation.Name) == "" {
+        return Occupation{}, fmt.Errorf("El nombre de la ocupación no puede estar vacío")
+    }
+
+    if err := service.validateCategory(occupation.CategoryID); err != nil {
+        return Occupation{}, err
+    }
+
+    return service.repository.Create(occupation)
 }
 
 func (service *Service) UpdateOccupation(id uint, occupation Occupation) (Occupation, error) {
-	if strings.TrimSpace(occupation.Name) == "" {
-		return Occupation{}, fmt.Errorf("El nombre de la ocupación no puede estar vacío")
-	}
+    if strings.TrimSpace(occupation.Name) == "" {
+        return Occupation{}, fmt.Errorf("El nombre de la ocupación no puede estar vacío")
+    }
 
-	updatedOccupation, err := service.repository.Update(id, occupation)
-	if err != nil {
-		return Occupation{}, fmt.Errorf("Error al actualizar la ocupación: %w", err)
-	}
+    if err := service.validateCategory(occupation.CategoryID); err != nil {
+        return Occupation{}, err
+    }
 
-	return updatedOccupation, nil
+    updatedOccupation, err := service.repository.Update(id, occupation)
+    if err != nil {
+        return Occupation{}, fmt.Errorf("Error al actualizar la ocupación: %w", err)
+    }
+
+    return updatedOccupation, nil
 }
 
 func (service *Service) DeleteOccupation(id uint) error {
@@ -50,4 +59,20 @@ func (service *Service) DeleteOccupation(id uint) error {
 		return fmt.Errorf("Error al eliminar la ocupación: %w", err)
 	}
 	return nil
+}
+
+func (service *Service) validateCategory(categoryID uint) error {
+    if categoryID == 0 {
+        return fmt.Errorf("La categoría es obligatoria")
+    }
+
+    exists, err := service.repository.CategoryExists(categoryID)
+    if err != nil {
+        return fmt.Errorf("Error al validar la categoría: %w", err)
+    }
+    if !exists {
+        return fmt.Errorf("La categoría seleccionada no existe")
+    }
+
+    return nil
 }

@@ -1,6 +1,7 @@
 package occupation
 
 type Occupation struct {
-	ID          uint   `gorm:"primaryKey" json:"id"`
-	Name        string `json:"name"`
+    ID         uint   `gorm:"primaryKey" json:"id"`
+    Name       string `json:"name"`
+    CategoryID uint   `gorm:"not null" json:"categoryId"`
 }

@@ -1,10 +1,11 @@
 import { useEffect, useState, type SubmitEvent } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { getCharacters } from '../../services/character';
 import type { Character } from '../../types/character';
 import './Level.css';
 
+/*
 type CharacterTarget = Omit<Character, 'id'>;
 
 const MOCK_EINSTEIN: CharacterTarget = {
@@ -13,22 +14,13 @@ const MOCK_EINSTEIN: CharacterTarget = {
   period: 'Edad Contemporanea',
   country: 'Alemania',
   continent: 'Europa',
-  knowFor:
-    'Teoría de la relatividad',
+  knowFor: 'Teoría de la relatividad',
   position: 'Físico',
   birthYear: 1879,
   yearOfDeath: 1955,
   occupations: [
-    { id: 5, name: 'Científico' },
+    { id: 5, name: 'Científico', categoryId: 2 },
   ],
-  /* 
-  Se tiene que completar manualmente segun las ocupaciones y como las genere la base de datos deberia quedar de la siguiente forma:
-  occupations: [
-    { id: 1, name: 'gobernador' },
-    { id: 2, name: 'militar' },
-    { id: 3, name: 'politico' },
-  ],
-  */
 };
 
 const MOCK_MARADONA: CharacterTarget = {
@@ -37,28 +29,20 @@ const MOCK_MARADONA: CharacterTarget = {
   period: 'Edad Contemporanea',
   country: 'Argentina',
   continent: 'America',
-  knowFor:
-    'Campeón del mundo con Argentina en 1986',
+  knowFor: 'Campeón del mundo con Argentina en 1986',
   position: 'Mediocampista ofensivo',
   birthYear: 1960,
   yearOfDeath: 2020,
   occupations: [
-    { id: 16, name: 'Futbolista' }
+    { id: 16, name: 'Futbolista', categoryId: 8 },
   ],
-  /* 
-  Se tiene que completar manualmente segun las ocupaciones y como las genere la base de datos deberia quedar de la siguiente forma:
-  occupations: [
-    { id: 1, name: 'gobernador' },
-    { id: 2, name: 'militar' },
-    { id: 3, name: 'politico' },
-  ],
-  */
 };
 
 const LEVEL_TARGETS: Partial<Record<number, CharacterTarget>> = {
   1: MOCK_EINSTEIN,
-  2: MOCK_MARADONA
+  2: MOCK_MARADONA,
 };
+*/
 
 const MAX_ATTEMPTS = 10;
 
@@ -67,15 +51,15 @@ const normalizeName = (name: string) => name.trim().toLocaleLowerCase();
 const getMatchClass = (matches: boolean) =>
   matches ? 'guess-value match' : 'guess-value mismatch';
 
-
 const Level = () => {
-  
   const { nroLevel } = useParams<{ nroLevel: string }>();
+  const [searchParams] = useSearchParams();
+
   const levelNumber = Number(nroLevel);
+  const categoryParam = searchParams.get('categoryId') ?? 'all';
 
   const [characters, setCharacters] = useState<Character[]>([]);
-  const [maradonaTarget, setMaradonaTarget] =
-    useState<CharacterTarget>(MOCK_MARADONA);
+  const [targetCharacter, setTargetCharacter] = useState<Character | null>(null);
   const [guesses, setGuesses] = useState<Character[]>([]);
   const [guessName, setGuessName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -83,52 +67,83 @@ const Level = () => {
   const [message, setMessage] = useState('');
   const [attempts, setAttempts] = useState(0);
 
-  const targetMock =
-    levelNumber === 2 ? maradonaTarget : LEVEL_TARGETS[levelNumber];
-
   useEffect(() => {
+    let isCurrentRequest = true;
+
+    setLoading(true);
+    setError(null);
+    setCharacters([]);
+    setTargetCharacter(null);
+    setGuesses([]);
+    setGuessName('');
+    setMessage('');
+    setAttempts(0);
+
+    const isAllCategories = categoryParam === 'all';
+    const categoryId = Number(categoryParam);
+
+    if (
+      !isAllCategories &&
+      (!Number.isSafeInteger(categoryId) || categoryId <= 0)
+    ) {
+      setError('La categoría seleccionada no es válida.');
+      setLoading(false);
+
+      return () => {
+        isCurrentRequest = false;
+      };
+    }
+
     getCharacters()
       .then((loadedCharacters) => {
-        setCharacters(loadedCharacters);
+        if (!isCurrentRequest) return;
 
-        const maradona = loadedCharacters.find((character) =>
-          normalizeName(character.name).includes('maradona'),
-        );
+        const charactersWithOccupations = loadedCharacters.map((character) => ({
+          ...character,
+          occupations: character.occupations ?? [],
+        }));
 
-        if (maradona) {
-          setMaradonaTarget({
-            name: maradona.name,
-            gender: maradona.gender,
-            period: maradona.period,
-            country: maradona.country,
-            continent: maradona.continent,
-            knowFor: maradona.knowFor,
-            position: maradona.position,
-            birthYear: maradona.birthYear,
-            yearOfDeath: maradona.yearOfDeath,
-            occupations: maradona.occupations,
-          });
+        const eligibleCharacters = isAllCategories
+          ? charactersWithOccupations
+          : charactersWithOccupations.filter((character) =>
+              character.occupations.some(
+                (occupation) => occupation.categoryId === categoryId,
+              ),
+            );
+
+        setCharacters(eligibleCharacters);
+
+        if (eligibleCharacters.length === 0) {
+          setError('No hay personajes disponibles para esta categoría.');
+          return;
         }
+
+        const randomIndex = Math.floor(
+          Math.random() * eligibleCharacters.length,
+        );
+        setTargetCharacter(eligibleCharacters[randomIndex]);
       })
       .catch((reason: unknown) => {
+        if (!isCurrentRequest) return;
+
         setError(
           reason instanceof Error ? reason.message : 'Error al cargar personajes',
         );
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (isCurrentRequest) {
+          setLoading(false);
+        }
+      });
 
+    return () => {
+      isCurrentRequest = false;
+    };
+  }, [categoryParam]);
 
-  const targetCharacter = targetMock
-    ? characters.find(
-        (character) =>
-          normalizeName(character.name) === normalizeName(targetMock.name),
-      )
-    : undefined;
-  const won = targetCharacter
-    ? guesses.some((guess) => guess.id === targetCharacter.id)
-    : false;
-
+  const won =
+    targetCharacter !== null &&
+    guesses.some((guess) => guess.id === targetCharacter.id);
 
   const handleAttempt = () => {
     setAttempts((currentAttempts) => currentAttempts + 1);
@@ -160,15 +175,27 @@ const Level = () => {
     setMessage('Intento agregado.');
   };
 
+  if (![1, 2].includes(levelNumber)) {
+    return <Navigate to="/jugar" replace />;
+  }
 
-  if (!targetMock) return <Navigate to="/jugar" replace />;
   if (loading) return <p>Cargando personajes...</p>;
-  if (error) return <p>{error}</p>;
+
+  if (error) {
+    return (
+      <section>
+        <h1>Nivel {levelNumber}</h1>
+        <p role="alert">{error}</p>
+        <Link to="/jugar">Volver a niveles</Link>
+      </section>
+    );
+  }
+
   if (!targetCharacter) {
     return (
       <section>
         <h1>Nivel {levelNumber}</h1>
-        <p>El personaje objetivo no está cargado en la base de datos.</p>
+        <p>No se pudo elegir un personaje para esta partida.</p>
         <Link to="/jugar">Volver a niveles</Link>
       </section>
     );
@@ -193,7 +220,14 @@ const Level = () => {
             <option key={character.id} value={character.name} />
           ))}
         </datalist>
-        <button type="submit" disabled={won || attempts >= MAX_ATTEMPTS || guessName.trim() === ''}>
+        <button
+          type="submit"
+          disabled={
+            won ||
+            attempts >= MAX_ATTEMPTS ||
+            guessName.trim() === ''
+          }
+        >
           Probar
         </button>
       </form>
@@ -228,34 +262,34 @@ const Level = () => {
             {guesses.map((guess) => (
               <tr key={guess.id}>
                 <td>{guess.name}</td>
-                <td className={getMatchClass(guess.gender === targetMock.gender)}>
+                <td className={getMatchClass(guess.gender === targetCharacter.gender)}>
                   {guess.gender}
                 </td>
-                <td className={getMatchClass(guess.period === targetMock.period)}>
+                <td className={getMatchClass(guess.period === targetCharacter.period)}>
                   {guess.period}
                 </td>
-                <td className={getMatchClass(guess.country === targetMock.country)}>
+                <td className={getMatchClass(guess.country === targetCharacter.country)}>
                   {guess.country}
                 </td>
-                <td className={getMatchClass(guess.continent === targetMock.continent)}>
+                <td className={getMatchClass(guess.continent === targetCharacter.continent)}>
                   {guess.continent}
                 </td>
-                <td className={getMatchClass(guess.knowFor === targetMock.knowFor)}>
+                <td className={getMatchClass(guess.knowFor === targetCharacter.knowFor)}>
                   {guess.knowFor}
                 </td>
-                <td className={getMatchClass(guess.position === targetMock.position)}>
+                <td className={getMatchClass(guess.position === targetCharacter.position)}>
                   {guess.position}
                 </td>
-                <td className={getMatchClass(guess.birthYear === targetMock.birthYear)}>
+                <td className={getMatchClass(guess.birthYear === targetCharacter.birthYear)}>
                   {guess.birthYear}
                 </td>
-                <td className={getMatchClass(guess.yearOfDeath === targetMock.yearOfDeath)}>
+                <td className={getMatchClass(guess.yearOfDeath === targetCharacter.yearOfDeath)}>
                   {guess.yearOfDeath}
                 </td>
                 <td className="occupation-cell">
                   {guess.occupations.length > 0 ? (
                     guess.occupations.map((occupation) => {
-                      const matches = targetMock.occupations.some(
+                      const matches = targetCharacter.occupations.some(
                         (targetOccupation) =>
                           normalizeName(targetOccupation.name) ===
                           normalizeName(occupation.name),
