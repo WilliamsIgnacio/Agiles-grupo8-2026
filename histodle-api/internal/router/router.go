@@ -6,6 +6,7 @@ import (
 
 	"histodle-api/internal/character"
 	"histodle-api/internal/occupation"
+	"histodle-api/internal/category"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -41,6 +42,13 @@ func New(db *gorm.DB) http.Handler {
 	r.Post("/occupations", occupationHandler.Create)
 	r.Put("/occupations/{id}", occupationHandler.Update)
 	r.Delete("/occupations/{id}", occupationHandler.Delete)
+
+	//rutas de categorias
+	categoryRepository := category.NewRepository(db)
+	categoryService := category.NewService(categoryRepository)
+	categoryHandler := category.NewHandler(categoryService)
+
+	r.Get("/categories", categoryHandler.List)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
