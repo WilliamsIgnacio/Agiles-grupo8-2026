@@ -239,3 +239,35 @@
     max-width: 100%;
   }
 }
+
+.category-selector {
+  display: grid;
+  gap: 0.6rem;
+  max-width: 24rem;
+  margin: 0 0 2rem;
+  color: rgba(228, 224, 234, 0.85);
+}
+
+.category-selector label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.category-selector select {
+  min-height: 3rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  border-radius: 0.8rem;
+  background: #120c1a;
+  color: #f4f2f9;
+  font: inherit;
+}
+
+.category-selector select:focus {
+  outline: 2px solid rgba(168, 85, 247, 0.6);
+  outline-offset: 2px;
+}
+
+.category-error {
+  color: #fca5a5;
+}
