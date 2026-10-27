@@ -41,11 +41,13 @@ func (repository *OccupationRepository) Update(id uint, occupation Occupation) (
 
 	if err := repository.db.Model(&existing).Updates(map[string]interface{}{
 		"name": occupation.Name,
+		"category_id": occupation.CategoryID,
 	}).Error; err != nil {
 		return Occupation{}, err
 	}
 
 	existing.Name = occupation.Name
+	existing.CategoryID = occupation.CategoryID
 	return existing, nil
 }
 
@@ -66,4 +68,13 @@ func (repository *OccupationRepository) Delete(id uint) error {
 	}
 
 	return repository.db.Delete(&occupation).Error
+}
+
+func (repository *OccupationRepository) CategoryExists(categoryID uint) (bool, error) {
+    var count int64
+    err := repository.db.Table("categories").
+        Where("id = ?", categoryID).
+        Count(&count).Error
+
+    return count > 0, err
 }
