@@ -1,5 +1,15 @@
 import type { Occupation } from "./occupations";
 
+export interface CharacterHint {
+  id: number;
+  characterId: number;
+  text: string;
+}
+
+export type CharacterHintInput = Pick<CharacterHint, 'text'> & {
+  id?: number;
+};
+
 export interface Character {
   id: number;
   name: string;
@@ -12,10 +22,12 @@ export interface Character {
   birthYear: number;
   yearOfDeath: number;
   occupations: Occupation[];
+  hints: CharacterHint[];
 }
 
-export type CharacterInput = Omit<Character, 'id' | 'occupations'> & {
+export type CharacterInput = Omit<Character, 'id' | 'occupations' | 'hints'> & {
   occupationIds: number[];
+  hints: CharacterHintInput[];
 };
 
 export interface CharactersOutletContext {

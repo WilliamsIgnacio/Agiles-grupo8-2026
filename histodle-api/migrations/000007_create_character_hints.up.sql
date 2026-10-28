@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS hints (
+    id BIGSERIAL PRIMARY KEY,
+    character_id BIGINT NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+    text TEXT NOT NULL
+);

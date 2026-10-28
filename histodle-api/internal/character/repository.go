@@ -2,6 +2,7 @@ package character
 
 import (
 	"fmt"
+	"strings"
 
 	occupation "histodle-api/internal/occupation"
 
@@ -18,13 +19,13 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (repository *Repository) FindAll() ([]Character, error) {
 	var characters []Character
-	err := repository.db.Preload("Occupations").Find(&characters).Error
+	err := repository.db.Preload("Occupations").Preload("Hints").Find(&characters).Error
 	return characters, err
 }
 
 func (repository *Repository) FindByID(id uint) (Character, error) {
 	var character Character
-	err := repository.db.Preload("Occupations").First(&character, id).Error
+	err := repository.db.Preload("Occupations").Preload("Hints").First(&character, id).Error
 	return character, err
 }
 
@@ -37,7 +38,11 @@ func (repository *Repository) Create(character Character, occupationIDs []uint) 
 			return err
 		}
 
-		if err := tx.Omit("Occupations").Create(&character).Error; err != nil {
+		if err := tx.Omit("Occupations", "Hints").Create(&character).Error; err != nil {
+			return err
+		}
+
+		if err := replaceHints(tx, character.ID, character.Hints); err != nil {
 			return err
 		}
 
@@ -45,7 +50,7 @@ func (repository *Repository) Create(character Character, occupationIDs []uint) 
 			return err
 		}
 
-		return tx.Preload("Occupations").First(&character, character.ID).Error
+		return tx.Preload("Occupations").Preload("Hints").First(&character, character.ID).Error
 	})
 	if err != nil {
 		return Character{}, err
@@ -85,7 +90,13 @@ func (repository *Repository) Update(id uint, character Character, occupationIDs
 			return err
 		}
 
-		return tx.Preload("Occupations").First(&updated, id).Error
+		if character.Hints != nil {
+			if err := replaceHints(tx, id, character.Hints); err != nil {
+				return err
+			}
+		}
+
+		return tx.Preload("Occupations").Preload("Hints").First(&updated, id).Error
 	})
 	if err != nil {
 		return Character{}, err
@@ -101,6 +112,54 @@ func (repository *Repository) Delete(id uint) error {
 	}
 
 	return repository.db.Delete(&character).Error
+}
+
+func replaceHints(tx *gorm.DB, characterID uint, hints []Hint) error {
+	var existing []Hint
+	if err := tx.Where("character_id = ?", characterID).Find(&existing).Error; err != nil {
+		return err
+	}
+
+	existingByID := make(map[uint]Hint, len(existing))
+	for _, hint := range existing {
+		existingByID[hint.ID] = hint
+	}
+
+	seenIDs := make(map[uint]struct{}, len(hints))
+	keepIDs := make([]uint, 0, len(hints))
+	for _, hint := range hints {
+		if strings.TrimSpace(hint.Text) == "" {
+			return fmt.Errorf("el texto de la pista no puede estar vacío")
+		}
+		if hint.ID != 0 {
+			if _, duplicate := seenIDs[hint.ID]; duplicate {
+				return fmt.Errorf("el ID de pista %d está repetido", hint.ID)
+			}
+			if _, belongsToCharacter := existingByID[hint.ID]; !belongsToCharacter {
+				return fmt.Errorf("la pista %d no pertenece al personaje", hint.ID)
+			}
+			seenIDs[hint.ID] = struct{}{}
+			if err := tx.Model(&Hint{}).
+				Where("id = ? AND character_id = ?", hint.ID, characterID).
+				Update("text", strings.TrimSpace(hint.Text)).Error; err != nil {
+				return err
+			}
+			keepIDs = append(keepIDs, hint.ID)
+			continue
+		}
+
+		newHint := Hint{CharacterID: characterID, Text: strings.TrimSpace(hint.Text)}
+		if err := tx.Create(&newHint).Error; err != nil {
+			return err
+		}
+		keepIDs = append(keepIDs, newHint.ID)
+	}
+
+	query := tx.Where("character_id = ?", characterID)
+	if len(keepIDs) > 0 {
+		query = query.Where("id NOT IN ?", keepIDs)
+	}
+	return query.Delete(&Hint{}).Error
 }
 
 func findOccupations(tx *gorm.DB, occupationIDs []uint) ([]occupation.Occupation, error) {

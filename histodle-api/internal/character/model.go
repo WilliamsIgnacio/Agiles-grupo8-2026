@@ -14,4 +14,11 @@ type Character struct {
 	BirthYear   int32                   `json:"birthYear"`
 	YearOfDeath int32                   `json:"yearOfDeath"`
 	Occupations []occupation.Occupation `gorm:"many2many:character_occupations;" json:"occupations"`
+	Hints       []Hint                  `gorm:"foreignKey:CharacterID" json:"hints"`
+}
+
+type Hint struct {
+	ID          uint   `gorm:"primaryKey" json:"id"`
+	CharacterID uint   `gorm:"not null" json:"characterId"`
+	Text        string `gorm:"type:text;not null" json:"text"`
 }

@@ -21,6 +21,7 @@ type characterRequest struct {
 	BirthYear     int32  `json:"birthYear"`
 	YearOfDeath   int32  `json:"yearOfDeath"`
 	OccupationIDs []uint `json:"occupationIds"`
+	Hints         []Hint `json:"hints"`
 }
 
 func (request characterRequest) toCharacter() Character {
@@ -34,6 +35,7 @@ func (request characterRequest) toCharacter() Character {
 		Position:    request.Position,
 		BirthYear:   request.BirthYear,
 		YearOfDeath: request.YearOfDeath,
+		Hints:       request.Hints,
 	}
 }
 
@@ -125,23 +127,23 @@ func (handler *Handler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-    id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
-    if err != nil {
-        http.Error(w, "Id inválido para el personaje", http.StatusBadRequest)
-        return
-    }
+	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		http.Error(w, "Id inválido para el personaje", http.StatusBadRequest)
+		return
+	}
 
-    err = handler.service.Delete(uint(id))
-    if errors.Is(err, gorm.ErrRecordNotFound) {
-        http.Error(w, "Personaje no encontrado", http.StatusNotFound)
-        return
-    }
-    if err != nil {
-        http.Error(w, "Error al eliminar el personaje", http.StatusInternalServerError)
-        return
-    }
+	err = handler.service.Delete(uint(id))
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Personaje no encontrado", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Error al eliminar el personaje", http.StatusInternalServerError)
+		return
+	}
 
-    w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {

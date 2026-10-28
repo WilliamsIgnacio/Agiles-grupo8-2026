@@ -99,6 +99,7 @@ export const CharacterFormOutlet: React.FC = () => {
             birthYear: character.birthYear,
             yearOfDeath: character.yearOfDeath,
             occupationIds: character.occupations.map((occupation) => occupation.id),
+            hints: (character.hints ?? []).map(({ id, text }) => ({ id, text })),
         }
         : undefined;
 
@@ -131,6 +132,7 @@ export const CharacterFormOutlet: React.FC = () => {
 
     return (
         <CharacterForm
+            key={character?.id ?? 'new-character'}
             initialValues={initialValues}
             occupations={occupations}
             onSubmit={handleSubmit}
