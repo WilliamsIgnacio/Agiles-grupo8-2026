@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import logo from '../../images/histodle-classic-white-on-black.png';
 import './Navbar.css';
 
 interface NavItem {
@@ -17,11 +18,7 @@ const Navbar: React.FC = () => {
     return (
         <header className="navbar-container">
             <div className="titulo" aria-label="Histodle logo">
-                <span className="brand-mark" aria-hidden="true">
-                    <span className="brand-dot brand-dot-one"></span>
-                    <span className="brand-dot brand-dot-two"></span>
-                    <span className="brand-dot brand-dot-three"></span>
-                </span>
+                <img className="brand-logo" src={logo} alt="" />
                 <span className="brand-text">Histodle</span>
             </div>
             <nav className="navbar-links">

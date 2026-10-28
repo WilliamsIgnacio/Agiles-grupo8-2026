@@ -1,3 +1,7 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap");
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
 * {
     box-sizing: border-box;
 }
@@ -5,7 +9,7 @@
 main {
     position: relative;
     z-index: 1;
-    background: transparent; /* Fuerza a que no tenga fondo sólido */
+    background: transparent; 
 }
 
 .level-page {
@@ -19,7 +23,7 @@ html, body, #root {
     min-height: 100vh;
     background: #07070d;
     color: #f4f2f9;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 body {
@@ -33,7 +37,7 @@ body::before {
     inset: 0;
     width: 100vw;
     height: 100vh;
-    background-image: radial-gradient(rgba(171, 122, 202, 0.22) 1.2px, transparent 1.2px);
+    background-image: radial-gradient(rgb(182 50 223 / 50%) 1.2px, transparent 1.2px);
     background-size: 18px 18px;
     background-repeat: repeat;
     opacity: 0.75;
@@ -372,4 +376,161 @@ main > section:has(> form) > table tbody td.occupation-cell .guess-value.mismatc
     main > section:has(> form) > table tbody td:nth-child(1) {
         grid-column: auto;
     }
+}
+
+.info-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem auto;
+    padding: 2.5rem 1.5rem;
+    max-width: 650px;
+    width: 100%;
+    border-radius: 20px;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    background-color: rgba(18, 14, 27, 0.6);
+    text-align: center;
+    }
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 26px); 
+    gap: 8px;
+    justify-content: center; 
+    margin-bottom: 1.25rem;
+}
+
+.grid-cell {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+}
+
+.grid-cell.green {
+    background-color: #10b981;
+}
+
+.grid-cell.dark {
+    background-color: #334155;
+}
+
+.grid-cell.yellow {
+    background-color: #f2ca3b;
+}
+
+.info-text {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    margin: 0 0 2.8rem;
+    color: rgba(228, 224, 234, 0.7);
+    background: transparent;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 0.86rem;
+    letter-spacing: 0.02em;
+    background: transparent;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 0.72rem;
+    height: 0.72rem;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.legend-dot.coincide {
+    background: #10b981;
+}
+
+.legend-dot.cerca {
+    background: #f9b536;
+}
+
+.legend-dot.no-coincide {
+    background: #4d4f5c;
+}
+
+.legend-dot.mayor {
+    position: relative;
+    background: #4d4f5c;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.legend-dot.mayor svg {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+}
+
+.level-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    background: transparent;
+}
+
+.level-header h1 {
+    margin: 0;
+    font-size: 40px;
+}
+
+.attempts-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; 
+    gap: 0.5rem;
+}
+
+.attempts-text {
+    font-size: 15px;
+    color: #cbd5e1;
+    margin: 0;
+}
+
+.attempts-count {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.attempts-bar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.attempt-pill {
+    width: 24px;
+    height: 10px;
+    border-radius: 9999px;
+    background-color: #261c33;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.attempt-pill.used {
+    background-color: #8b5cf6;
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
 }

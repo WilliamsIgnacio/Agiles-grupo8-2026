@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
 .occupations-section {
     display: flex;
     flex-direction: column;
@@ -8,7 +10,7 @@
     padding: 0 1rem;
     box-sizing: border-box;
     padding-bottom: 100px;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .create-occupation-bar {
@@ -16,6 +18,7 @@
     align-items: center;
     gap: 0.75rem;
     width: 100%;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .occupation-input {
@@ -50,6 +53,7 @@
     cursor: pointer;
     white-space: nowrap;
     transition: opacity 0.2s ease;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .btn-create-occupation:hover:not(:disabled) {
@@ -75,12 +79,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease
 }
 
 .occupation-card:hover {
-    border-color: #3d3052;
+    border-color: #9c6fe4;
     background-color: #160f21;
+    transform: translateY(-5px);
 }
 
 .occupation-info {

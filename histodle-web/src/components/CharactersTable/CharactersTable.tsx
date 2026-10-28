@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Character } from '../../types/character';
+import { sileo } from 'sileo';
 import CharactersDetail from '../CharactersDetail/CharactersDetail';
 import './CharactersTable.css';
 
@@ -39,9 +40,17 @@ const CharactersTable: React.FC<CharactersTableProps> = ({
         try {
             if (window.confirm(`¿Estás seguro de que deseas eliminar al personaje "${character.name}"?`)) {
                 setActionError(null);
-                await onDelete(character);
+                const deletion = Promise.all([
+                    onDelete(character),
+                    new Promise<void>((resolve) => window.setTimeout(resolve, 500)),
+                ]);
+
+                await sileo.promise(deletion, {
+                    loading: { title: `Eliminando a ${character.name}...` },
+                    success: { title: `¡Personaje "${character.name}" eliminado!` },
+                    error: { title: `Error al eliminar a ${character.name}` },
+                });
                 setSelectedCharacter((current) => current?.id === character.id ? null : current);
-                alert(`Personaje "${character.name}" eliminado correctamente.`);
             }
         } catch (reason: unknown) {
             setActionError(reason instanceof Error ? reason.message : `Error al eliminar el personaje "${character.name}".`);
