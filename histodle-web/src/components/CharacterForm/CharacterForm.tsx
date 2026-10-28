@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { CharacterInput } from '../../types/character';
 import type { Occupation } from '../../types/occupations';
 import './CharacterForm.css';
@@ -23,6 +23,7 @@ interface CharacterFormProps {
     birthYear: 0,
     yearOfDeath: 0,
     occupationIds: [],
+    hints: [],
     };
 
     const CharacterForm: React.FC<CharacterFormProps> = ({
@@ -37,10 +38,6 @@ interface CharacterFormProps {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
-    useEffect(() => {
-        setFormData(initialValues);
-    }, [initialValues]);
-
     const updateField = <K extends keyof CharacterInput>(field: K, value: CharacterInput[K]) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
@@ -54,11 +51,34 @@ interface CharacterFormProps {
         updateField('occupationIds', updated);
     };
 
+    const addHint = () => {
+        updateField('hints', [...formData.hints, { text: '' }]);
+    };
+
+    const updateHint = (index: number, text: string) => {
+        updateField(
+            'hints',
+            formData.hints.map((hint, hintIndex) =>
+                hintIndex === index ? { ...hint, text } : hint,
+            ),
+        );
+    };
+
+    const removeHint = (index: number) => {
+        updateField(
+            'hints',
+            formData.hints.filter((_, hintIndex) => hintIndex !== index),
+        );
+    };
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsSubmitting(true);
         setSubmitError(null);
         try {
+            if (formData.hints.some((hint) => !hint.text.trim())) {
+                throw new Error('Completá o eliminá las pistas vacías antes de guardar.');
+            }
             await onSubmit(formData);
         } catch (reason: unknown) {
             setSubmitError(reason instanceof Error ? reason.message : 'Error al registrar el personaje');
@@ -209,6 +229,46 @@ interface CharacterFormProps {
                 })}
             </div>
             </div>
+
+            <section className="form-group full-width hints-section" aria-labelledby="hints-heading">
+            <div className="hints-header">
+                <div>
+                    <label id="hints-heading">Pistas</label>
+                    <p className="field-hint">Consultá y editá las pistas asociadas a este personaje.</p>
+                </div>
+                <button type="button" className="btn btn-secondary add-hint-button" onClick={addHint}>
+                    + Agregar pista
+                </button>
+            </div>
+            {formData.hints.length === 0 ? (
+                <p className="hints-empty">Este personaje todavía no tiene pistas.</p>
+            ) : (
+                <div className="hints-list">
+                    {formData.hints.map((hint, index) => (
+                        <div className="hint-row" key={hint.id ?? `new-${index}`}>
+                            <label className="hint-number" htmlFor={`character-hint-${index}`}>
+                                Pista {index + 1}
+                            </label>
+                            <input
+                                id={`character-hint-${index}`}
+                                type="text"
+                                value={hint.text}
+                                placeholder="Escribí una pista"
+                                onChange={(event) => updateHint(index, event.target.value)}
+                            />
+                            <button
+                                type="button"
+                                className="remove-hint-button"
+                                onClick={() => removeHint(index)}
+                                aria-label={`Eliminar pista ${index + 1}`}
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+            </section>
 
             <div className="form-actions">
             {onCancel && (

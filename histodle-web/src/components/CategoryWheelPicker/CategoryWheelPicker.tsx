@@ -3,8 +3,6 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import type { Category } from '../../types/category';
 import './CategoryWheelPicker.css';
 
-const ITEM_WIDTH = 180;
-
 interface CategoryWheelPickerProps {
     categories: Category[];
     selectedCategoryId: string;
@@ -25,7 +23,6 @@ export const CategoryWheelPicker: React.FC<CategoryWheelPickerProps> = ({
 
     const containerRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
-    const isProgrammaticScroll = useRef(false);
     const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const getCurrentIndex = useCallback(() => {

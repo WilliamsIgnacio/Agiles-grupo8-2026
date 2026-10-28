@@ -155,6 +155,67 @@
     font-weight: 600;
 }
 
+.hints-section {
+    gap: 0.75rem;
+}
+
+.hints-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.hints-header .field-hint {
+    margin: 0.25rem 0 0;
+}
+
+.add-hint-button {
+    white-space: nowrap;
+}
+
+.hints-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.hint-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.hint-number {
+    color: #d1cbd8;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.hint-row input {
+    min-width: 0;
+}
+
+.remove-hint-button {
+    background: transparent;
+    border: 1px solid #5b2b3a;
+    border-radius: 20px;
+    color: #f0a2b3;
+    cursor: pointer;
+    padding: 0.55rem 0.85rem;
+}
+
+.remove-hint-button:hover {
+    background: #351a25;
+}
+
+.hints-empty {
+    color: #8b8595;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
 .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -200,4 +261,18 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+@media (max-width: 520px) {
+    .hint-row {
+        grid-template-columns: 1fr auto;
+    }
+
+    .hint-number {
+        grid-column: 1 / -1;
+    }
+
+    .hint-row input {
+        grid-column: 1;
+    }
 }
