@@ -1,94 +1,71 @@
 import { useEffect, useState, type SubmitEvent } from 'react';
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { sileo } from 'sileo';
 
 import { getCharacters } from '../../services/character';
 import type { Character } from '../../types/character';
 import './Level.css';
 
-/*
-type CharacterTarget = Omit<Character, 'id'>;
-
-const MOCK_EINSTEIN: CharacterTarget = {
-    name: 'Albert Einstein',
-    gender: 'Masculino',
-    period: 'Edad Contemporanea',
-    country: 'Alemania',
-    continent: 'Europa',
-    knowFor: 'Teoría de la relatividad',
-    position: 'Físico',
-    birthYear: 1879,
-    yearOfDeath: 1955,
-    occupations: [
-        { id: 5, name: 'Científico', categoryId: 2 },
-    ],
-    };
-
-const MOCK_MARADONA: CharacterTarget = {
-    name: 'Diego Maradona',
-    gender: 'Masculino',
-    period: 'Edad Contemporanea',
-    country: 'Argentina',
-    continent: 'America',
-    knowFor: 'Campeón del mundo con Argentina en 1986',
-    position: 'Mediocampista ofensivo',
-    birthYear: 1960,
-    yearOfDeath: 2020,
-    occupations: [
-        { id: 16, name: 'Futbolista', categoryId: 8 },
-    ],
-};
-
-const LEVEL_TARGETS: Partial<Record<number, CharacterTarget>> = {
-    1: MOCK_EINSTEIN,
-    2: MOCK_MARADONA,
-};
-*/
-
 const MAX_ATTEMPTS = 10;
+const LEVEL_TARGET_NAMES: Partial<Record<number, string>> = {
+    1: 'Albert Einstein',
+    2: 'Diego Maradona',
+};
 
 const normalizeName = (name: string) => name.trim().toLocaleLowerCase();
 
 const getMatchClass = (matches: boolean) =>
     matches ? 'guess-value match' : 'guess-value mismatch';
 
-    const Level = () => {
+    interface LevelProps {
+        practiceMode?: boolean;
+    }
+
+    const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
     const { nroLevel } = useParams<{ nroLevel: string }>();
     const [searchParams] = useSearchParams();
 
     const levelNumber = Number(nroLevel);
     const categoryParam = searchParams.get('categoryId') ?? 'all';
+    const requestKey = `${practiceMode}:${levelNumber}:${categoryParam}`;
+    const categoryId = Number(categoryParam);
+    const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
+    const invalidCategory =
+        practiceMode &&
+        categoryParam !== 'all' &&
+        (!Number.isSafeInteger(categoryId) || categoryId <= 0);
+    const loading = loadedRequestKey !== requestKey;
 
     const [characters, setCharacters] = useState<Character[]>([]);
     const [targetCharacter, setTargetCharacter] = useState<Character | null>(null);
     const [guesses, setGuesses] = useState<Character[]>([]);
     const [guessName, setGuessName] = useState('');
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState('');
     const [attempts, setAttempts] = useState(0);
 
-    useEffect(() => {
-        let isCurrentRequest = true;
+    const startNextPractice = () => {
+        const nextCharacters = characters.filter(
+            (character) => character.id !== targetCharacter?.id,
+        );
+        const candidates = nextCharacters.length > 0 ? nextCharacters : characters;
+        if (candidates.length === 0) return;
 
-        setLoading(true);
-        setError(null);
-        setCharacters([]);
-        setTargetCharacter(null);
+        sileo.clear();
+        const nextTarget = candidates[Math.floor(Math.random() * candidates.length)];
+        setTargetCharacter(nextTarget);
         setGuesses([]);
         setGuessName('');
         setMessage('');
         setAttempts(0);
+    };
 
-        const isAllCategories = categoryParam === 'all';
-        const categoryId = Number(categoryParam);
+    useEffect(() => {
+        let isCurrentRequest = true;
 
-        if (
-            !isAllCategories &&
-            (!Number.isSafeInteger(categoryId) || categoryId <= 0)
-        ) {
-            setError('La categoría seleccionada no es válida.');
-            setLoading(false);
+        const isAllCategories = !practiceMode || categoryParam === 'all';
 
+        if (invalidCategory) {
             return () => {
                 isCurrentRequest = false;
             };
@@ -111,6 +88,11 @@ const getMatchClass = (matches: boolean) =>
                 ),
             );
 
+            setError(null);
+            setGuesses([]);
+            setGuessName('');
+            setMessage('');
+            setAttempts(0);
             setCharacters(eligibleCharacters);
 
             if (eligibleCharacters.length === 0) {
@@ -118,10 +100,27 @@ const getMatchClass = (matches: boolean) =>
                 return;
             }
 
-            const randomIndex = Math.floor(
-                Math.random() * eligibleCharacters.length,
+            if (practiceMode) {
+                const randomIndex = Math.floor(
+                    Math.random() * eligibleCharacters.length,
+                );
+                setTargetCharacter(eligibleCharacters[randomIndex]);
+                return;
+            }
+
+            const targetName = LEVEL_TARGET_NAMES[levelNumber];
+            if (!targetName) {
+                setError(`No hay un personaje objetivo configurado para el nivel ${levelNumber}.`);
+                return;
+            }
+            const fixedTarget = eligibleCharacters.find(
+                (character) => normalizeName(character.name) === normalizeName(targetName),
             );
-            setTargetCharacter(eligibleCharacters[randomIndex]);
+            if (!fixedTarget) {
+                setError(`No se encontró el personaje objetivo del nivel ${levelNumber}: ${targetName}.`);
+                return;
+            }
+            setTargetCharacter(fixedTarget);
         })
         .catch((reason: unknown) => {
             if (!isCurrentRequest) return;
@@ -132,14 +131,14 @@ const getMatchClass = (matches: boolean) =>
         })
         .finally(() => {
             if (isCurrentRequest) {
-                setLoading(false);
+                setLoadedRequestKey(requestKey);
             }
         });
 
         return () => {
             isCurrentRequest = false;
         };
-    }, [categoryParam]);
+    }, [categoryId, categoryParam, invalidCategory, levelNumber, practiceMode, requestKey]);
 
     const won =
         targetCharacter !== null &&
@@ -173,10 +172,33 @@ const getMatchClass = (matches: boolean) =>
         setGuesses((currentGuesses) => [guess, ...currentGuesses]);
         setGuessName('');
         setMessage('Intento agregado.');
+        if (practiceMode && guess.id === targetCharacter?.id) {
+            sileo.success({
+                title: '¡Adivinaste el personaje!',
+                description: `La respuesta era ${targetCharacter.name}.`,
+                duration: 5000,
+            });
+        } else if (practiceMode && attempts + 1 >= MAX_ATTEMPTS) {
+            sileo.error({
+                title: '¡Perdiste!',
+                description: `Se acabaron los ${MAX_ATTEMPTS} intentos. El personaje era ${targetCharacter?.name}.`,
+                duration: 5000,
+            });
+        }
     };
 
-    if (![1, 2].includes(levelNumber)) {
+    if (!practiceMode && ![1, 2].includes(levelNumber)) {
         return <Navigate to="/jugar" replace />;
+    }
+
+    if (invalidCategory) {
+        return (
+            <section>
+                <h1>Modo práctica</h1>
+                <p role="alert">La categoría seleccionada no es válida.</p>
+                <Link to="/jugar">Volver a jugar</Link>
+            </section>
+        );
     }
 
     if (loading) return <p>Cargando personajes...</p>;
@@ -186,7 +208,7 @@ const getMatchClass = (matches: boolean) =>
         <section>
             <h1>Nivel {levelNumber}</h1>
             <p role="alert">{error}</p>
-            <Link to="/jugar">Volver a niveles</Link>
+            <Link to="/jugar">{practiceMode ? 'Volver a jugar' : 'Volver a niveles'}</Link>
         </section>
         );
     }
@@ -209,14 +231,22 @@ const getMatchClass = (matches: boolean) =>
 
     return (
         <section className="level-page">
-            <header className='level-header'> 
-                <h1>Nivel {levelNumber}</h1>
+            <header className='level-header'>
+                <h1>{practiceMode ? 'Modo práctica' : `Nivel ${levelNumber}`}</h1>
                 <div className='attempts-container'>
                     <p className='attempts-text'>
-                        <strong className='attempts-count'>{MAX_ATTEMPTS - attempts}</strong> intentos restantes
+                        {practiceMode ? (
+                            <>
+                                <strong className='attempts-count'>{attempts}</strong> intentos
+                            </>
+                        ) : (
+                            <>
+                                <strong className='attempts-count'>{MAX_ATTEMPTS - attempts}</strong> intentos restantes
+                            </>
+                        )}
                     </p>
 
-                    <div className='attempts-bar'>
+                    {!practiceMode && <div className='attempts-bar'>
                         {Array.from({ length: MAX_ATTEMPTS }).map((_, index) => {
                             const isUsed = index < attempts;
                             return (
@@ -227,7 +257,7 @@ const getMatchClass = (matches: boolean) =>
                             )
                         })}
 
-                    </div>
+                    </div>}
                 </div>
             </header>
 
@@ -299,9 +329,27 @@ const getMatchClass = (matches: boolean) =>
 
 
             {message && <p role="status">{message}</p>}
-            {won && <h2>¡Adivinaste el personaje!</h2>}
+            {won && (
+                <div className="game-result" role="status">
+                    <h2>¡Adivinaste el personaje!</h2>
+                    {practiceMode && (
+                        <button type="button" onClick={startNextPractice}>
+                            Siguiente personaje
+                        </button>
+                    )}
+                </div>
+            )}
 
-            {!won && attempts >= MAX_ATTEMPTS && (
+            {practiceMode && !won && attempts >= MAX_ATTEMPTS && (
+                <div className="game-result" role="status">
+                    <h2>¡Perdiste! Se acabaron los intentos.</h2>
+                    <button type="button" onClick={startNextPractice}>
+                        Siguiente personaje
+                    </button>
+                </div>
+            )}
+
+            {!practiceMode && !won && attempts >= MAX_ATTEMPTS && (
                 <div>
                 <h2>Perdiste!</h2>
                 <p role="status">No tienes mas intentos.</p>

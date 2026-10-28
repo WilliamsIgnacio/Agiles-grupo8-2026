@@ -28,6 +28,7 @@ const router = createBrowserRouter([
         children: [
             { index: true, element: <Navigate to="jugar" replace /> },
             { path: 'jugar', element: <Jugar /> },
+            { path: 'jugar/practica', element: <Level practiceMode /> },
             { path: 'jugar/nivel/:nroLevel', element: <Level /> },
             { 
                 path: 'admin', 

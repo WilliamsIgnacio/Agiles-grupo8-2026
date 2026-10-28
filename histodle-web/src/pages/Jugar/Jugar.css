@@ -125,6 +125,16 @@
   max-width: 1160px;
 }
 
+.practice-card {
+  max-width: 1160px;
+  margin-bottom: 2rem;
+  border-color: rgba(182, 50, 223, 0.4);
+}
+
+.practice-card .level-footer {
+  flex-wrap: wrap;
+}
+
 .level-card {
   display: flex;
   flex-direction: column;

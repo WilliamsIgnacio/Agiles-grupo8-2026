@@ -27,6 +27,7 @@ const Jugar: React.FC = () => {
             attempts: 10,
         },
     ];
+    const categoryQuery = `?categoryId=${selectedCategoryId}`;
 
     useEffect(() => {
         getCategories()
@@ -46,8 +47,8 @@ const Jugar: React.FC = () => {
             <p className="eyebrow">Un personaje. pocas pistas.</p>
             <h1 className="jugar-title">¿Quién se esconde detrás de la historia?</h1>
             <p className="subtitle">
-                Elegí una categoría y un nivel. El personaje objetivo se elige al azar
-                entre los disponibles para esa selección.
+                Elegí una categoría para el modo práctica o jugá los niveles, que
+                usan todos los personajes y tienen un objetivo fijo.
             </p>
 
             <div className="legend-row">
@@ -74,7 +75,7 @@ const Jugar: React.FC = () => {
             </div>
 
             <div className="category-selector">
-        <label htmlFor="game-category">Categoría de personajes</label>
+        <label htmlFor="game-category">Categoría de personajes (modo práctica)</label>
         
         {/* Selector de Rueda Remplazando al <select> */}
         <CategoryWheelPicker
@@ -100,6 +101,25 @@ const Jugar: React.FC = () => {
             )}
 
             <h2 className="levels-title">Elegí un nivel</h2>
+            <section className="level-card practice-card">
+                <div className="level-header">
+                    <span className="level-badge">Hasta 10 intentos</span>
+                    <span className="level-difficulty facil">Práctica</span>
+                </div>
+                <h3>Modo práctica</h3>
+                <p className="level-description">
+                    Adiviná personajes al azar con hasta 10 intentos. Al acertar,
+                    podés empezar otra partida con un personaje distinto.
+                </p>
+                <div className="level-footer">
+                    <span className="attempts">Un personaje nuevo en cada ronda</span>
+                    <Link className="play-link" to={`/jugar/practica${categoryQuery}`}>
+                        Practicar ➜
+                    </Link>
+                </div>
+            </section>
+
+            <h2 className="levels-title">Niveles</h2>
             <div className="level-grid">
                 {levels.map((level) => (
                     <div className="level-card" key={level.number}>
