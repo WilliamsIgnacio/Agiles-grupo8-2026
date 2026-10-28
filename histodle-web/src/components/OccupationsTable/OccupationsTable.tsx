@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { sileo } from 'sileo';
 import { getCategories } from '../../services/categories';
 import {
     createOccupation,
@@ -14,6 +15,19 @@ import './OccupationsTable.css';
 interface Props {
     occupations: Occupation[];
 }
+
+const ensureMinimumLoadingTime = async <T,>(operation: Promise<T>): Promise<T> => {
+    const delay = new Promise<void>((resolve) => window.setTimeout(resolve, 500));
+
+    try {
+        const result = await operation;
+        await delay;
+        return result;
+    } catch (reason: unknown) {
+        await delay;
+        throw reason;
+    }
+};
 
 const OccupationsTable: React.FC<Props> = ({ occupations }) => {
     const [newOccupationName, setNewOccupationName] = useState('');
@@ -55,10 +69,17 @@ const OccupationsTable: React.FC<Props> = ({ occupations }) => {
         setError(null);
 
         try {
-            const createdOccupation = await createOccupation({
-                name,
-                categoryId: Number(newCategoryId),
-            });
+            const createdOccupation = await sileo.promise(
+                ensureMinimumLoadingTime(createOccupation({
+                    name,
+                    categoryId: Number(newCategoryId),
+                })),
+                {
+                    loading: { title: 'Creando ocupación...' },
+                    success: { title: '¡Ocupación creada exitosamente!' },
+                    error: { title: 'Error al crear la ocupación' },
+                },
+            );
 
             setLoadedOccupations((current) => [...current, createdOccupation]);
             setNewOccupationName('');
@@ -76,10 +97,17 @@ const OccupationsTable: React.FC<Props> = ({ occupations }) => {
         setError(null);
 
         try {
-            const updatedOccupation = await updateOccupation(editingOccupation.id, {
-                name,
-                categoryId,
-            });
+            const updatedOccupation = await sileo.promise(
+                ensureMinimumLoadingTime(updateOccupation(editingOccupation.id, {
+                    name,
+                    categoryId,
+                })),
+                {
+                    loading: { title: 'Modificando ocupación...' },
+                    success: { title: '¡Ocupación modificada exitosamente!' },
+                    error: { title: 'Error al modificar la ocupación' },
+                },
+            );
 
             setLoadedOccupations((current) =>
                 current.map((occupation) =>
@@ -98,7 +126,14 @@ const OccupationsTable: React.FC<Props> = ({ occupations }) => {
             if (window.confirm(`¿Estás seguro de que deseas eliminar la ocupación "${occupation.name}"?`)) {
                 setDeletingOccupationId(occupation.id);
                 setError(null);
-                await deleteOccupation(occupation.id);
+                await sileo.promise(
+                    ensureMinimumLoadingTime(deleteOccupation(occupation.id)),
+                    {
+                        loading: { title: `Eliminando "${occupation.name}"...` },
+                        success: { title: '¡Ocupación eliminada exitosamente!' },
+                        error: { title: `Error al eliminar "${occupation.name}"` },
+                    },
+                );
                 setLoadedOccupations((previous) =>
                     previous.filter((item) => item.id !== occupation.id),
                 );

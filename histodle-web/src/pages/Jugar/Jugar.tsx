@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getCategories } from '../../services/categories';
 import type { Category } from '../../types/category';
+import { CategoryWheelPicker } from '../../components/CategoryWheelPicker/CategoryWheelPicker';
 import './Jugar.css';
 
 const Jugar: React.FC = () => {
@@ -49,22 +50,47 @@ const Jugar: React.FC = () => {
                 entre los disponibles para esa selección.
             </p>
 
-            <div className="category-selector">
-                <label htmlFor="game-category">Categoría de personajes</label>
-                <select
-                    id="game-category"
-                    value={selectedCategoryId}
-                    onChange={(event) => setSelectedCategoryId(event.target.value)}
-                    disabled={categoriesLoading}
-                >
-                    <option value="all">Todas las categorías</option>
-                    {categories.map((category: Category) => (
-                        <option key={category.id} value={category.id}>
-                            {category.name}
-                        </option>
-                    ))}
-                </select>
+            <div className="legend-row">
+                <div className="legend-item">
+                    <span className="legend-dot coincide"></span>
+                    <span className='instruction'>Coincide</span>
+                </div>
+                <div className="legend-item">
+                    <span className="legend-dot cerca"></span>
+                    <span className='instruction'>Cerca</span>
+                </div>
+                <div className="legend-item">
+                    <span className="legend-dot no-coincide"></span>
+                    <span className='instruction'>No coincide</span>
+                </div>
+                <div className="legend-item">
+                    <span className="legend-dot mayor">
+                        <svg aria-hidden="true" viewBox="0 0 12 12">
+                            <path d="M6 10V2M2.5 5.5 6 2l3.5 3.5" />
+                        </svg>
+                    </span>
+                    <span className='instruction'>El misterioso tiene un valor mayor</span>
+                </div>
             </div>
+
+            <div className="category-selector">
+        <label htmlFor="game-category">Categoría de personajes</label>
+        
+        {/* Selector de Rueda Remplazando al <select> */}
+        <CategoryWheelPicker
+            categories={categories}
+            selectedCategoryId={selectedCategoryId}
+            onCategoryChange={setSelectedCategoryId}
+            disabled={categoriesLoading}
+        />
+        </div>
+
+        {categoriesLoading && <p role="status">Cargando categorías...</p>}
+        {error && (
+            <p className="category-error" role="alert">
+            {error}
+            </p>
+        )}
 
             {categoriesLoading && <p role="status">Cargando categorías...</p>}
             {error && (
@@ -72,25 +98,6 @@ const Jugar: React.FC = () => {
                     {error}
                 </p>
             )}
-
-            <div className="legend-row">
-                <div className="legend-item">
-                    <span className="legend-dot coincide"></span>
-                    <span>Coincide</span>
-                </div>
-                <div className="legend-item">
-                    <span className="legend-dot cerca"></span>
-                    <span>Cerca</span>
-                </div>
-                <div className="legend-item">
-                    <span className="legend-dot no-coincide"></span>
-                    <span>No coincide</span>
-                </div>
-                <div className="legend-item">
-                    <span className="legend-dot mayor"></span>
-                    <span>El misterioso tiene un valor mayor</span>
-                </div>
-            </div>
 
             <h2 className="levels-title">Elegí un nivel</h2>
             <div className="level-grid">
@@ -106,15 +113,12 @@ const Jugar: React.FC = () => {
                         <h3>{level.title}</h3>
                         <p className="level-description">{level.description}</p>
 
-                        <div className="level-footer">
-                            <span className="attempts">{level.attempts} intentos</span>
-                            <Link
-                                className="play-link"
-                                to={`/jugar/nivel/${level.number}?categoryId=${selectedCategoryId}`}
-                            >
-                                Jugar <span aria-hidden="true">→</span>
-                            </Link>
-                        </div>
+                    <div className="level-footer">
+                        <span className="attempts">{level.attempts} intentos</span>
+                        <Link className="play-link" to={`/jugar/nivel/${level.number}`}>
+                            Jugar ➜
+                        </Link>
+                    </div>
                     </div>
                 ))}
             </div>

@@ -5,6 +5,7 @@ import type { Character, CharacterInput } from '../../types/character';
 import CharacterForm from '../../components/CharacterForm/CharacterForm';
 import CharactersTable from '../../components/CharactersTable/CharactersTable';
 import './Admin.css';
+import { sileo } from 'sileo';
 
 //servicios
 import { createCharacter, deleteCharacter as deleteCharacterRequest, getCharacters, updateCharacter } from '../../services/character';
@@ -47,9 +48,10 @@ const AdminLayout: React.FC = () => {
 
     return (
         <section className="admin-container">
-            <h1>Administrador</h1>
+            <p className="eyebrow">Panel de conrol</p>
+            <h1 className='admin-title'>Administrador</h1>
             <p className="admin-subtitle">
-                Gestioná los personajes, ocupaciones y niveles del juego.
+                Gestioná los personajes y ocupaciones del juego.
             </p>
 
             <div className="tabs-container">
@@ -57,14 +59,14 @@ const AdminLayout: React.FC = () => {
                 to="/admin/characters"
                 className={({ isActive }) => `tab-button ${isActive ? 'active' : ''}`}
                 >
-                Personajes <span className="tab-count">{characters.length}</span>
+                Personajes ({characters.length})
                 </NavLink>
 
                 <NavLink
                 to="/admin/occupations"
                 className={({ isActive }) => `tab-button ${isActive ? 'active' : ''}`}
                 >
-                Ocupaciones <span className="tab-count">{occupationsCount}</span>
+                Ocupaciones ({occupationsCount})
                 </NavLink>
             </div>
 
@@ -102,9 +104,27 @@ export const CharacterFormOutlet: React.FC = () => {
 
     const handleSubmit = async (formData: CharacterInput) => {
         if (character) {
-            await updateCharacter(character.id, formData);
+            const creation = Promise.all([
+                updateCharacter(character.id, formData),
+                new Promise<void>((resolve) => window.setTimeout(resolve, 500)),
+            ]).then(([updatedCharacter]) => updatedCharacter);
+
+            await sileo.promise(creation, {
+                loading: { title: 'Moficando personaje...' },
+                success: { title: '¡Personaje modificado exitosamente!' },
+                error: { title: 'Error al modificar el personaje' },
+            });
         } else {
-            await createCharacter(formData);
+            const creation = Promise.all([
+                createCharacter(formData),
+                new Promise<void>((resolve) => window.setTimeout(resolve, 500)),
+            ]).then(([createdCharacter]) => createdCharacter);
+
+            await sileo.promise(creation, {
+                loading: { title: 'Creando personaje...' },
+                success: { title: '¡Personaje creado exitosamente!' },
+                error: { title: 'Error al crear el personaje' },
+            });
         }
         navigate('/admin/characters');
     };

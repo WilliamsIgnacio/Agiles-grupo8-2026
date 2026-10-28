@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-router-dom';
 import "./App.css";
+import { Toaster } from 'sileo';
 
 //importacion de componentes
 import Navbar from './components/Navbar/Navbar';
@@ -12,10 +13,10 @@ import Level from './components/Level/Level';
 const MainLayout: React.FC = () => {
     return (
         <>
-        <Navbar />
-        <main>
-            <Outlet />
-        </main>
+            <Navbar />
+            <main>
+                <Outlet />
+            </main>
         </>
     );
 };
@@ -60,7 +61,12 @@ const router = createBrowserRouter([
 ]);
 
 const App: React.FC = () => {
-    return <RouterProvider router={router} />;
+    return ( 
+        <>
+            <Toaster position='top-center'/>
+            <RouterProvider router={router} /> 
+        </>
+    );
 };
 
 export default App;
