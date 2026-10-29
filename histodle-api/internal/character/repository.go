@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"histodle-api/internal/difficulty"
 	occupation "histodle-api/internal/occupation"
 
 	"gorm.io/gorm"
@@ -19,13 +20,13 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (repository *Repository) FindAll() ([]Character, error) {
 	var characters []Character
-	err := repository.db.Preload("Occupations").Preload("Hints").Find(&characters).Error
+	err := repository.db.Preload("Difficulty").Preload("Occupations").Preload("Hints").Find(&characters).Error
 	return characters, err
 }
 
 func (repository *Repository) FindByID(id uint) (Character, error) {
 	var character Character
-	err := repository.db.Preload("Occupations").Preload("Hints").First(&character, id).Error
+	err := repository.db.Preload("Difficulty").Preload("Occupations").Preload("Hints").First(&character, id).Error
 	return character, err
 }
 
@@ -33,12 +34,16 @@ func (repository *Repository) Create(character Character, occupationIDs []uint) 
 	character.ID = 0
 
 	err := repository.db.Transaction(func(tx *gorm.DB) error {
+		if err := validateDifficulty(tx, character.DifficultyID); err != nil {
+			return err
+		}
+
 		selectedOccupations, err := findOccupations(tx, occupationIDs)
 		if err != nil {
 			return err
 		}
 
-		if err := tx.Omit("Occupations", "Hints").Create(&character).Error; err != nil {
+		if err := tx.Omit("Difficulty", "Occupations", "Hints").Create(&character).Error; err != nil {
 			return err
 		}
 
@@ -50,7 +55,7 @@ func (repository *Repository) Create(character Character, occupationIDs []uint) 
 			return err
 		}
 
-		return tx.Preload("Occupations").Preload("Hints").First(&character, character.ID).Error
+		return tx.Preload("Difficulty").Preload("Occupations").Preload("Hints").First(&character, character.ID).Error
 	})
 	if err != nil {
 		return Character{}, err
@@ -66,6 +71,9 @@ func (repository *Repository) Update(id uint, character Character, occupationIDs
 		if err := tx.First(&existing, id).Error; err != nil {
 			return err
 		}
+		if err := validateDifficulty(tx, character.DifficultyID); err != nil {
+			return err
+		}
 
 		selectedOccupations, err := findOccupations(tx, occupationIDs)
 		if err != nil {
@@ -74,6 +82,7 @@ func (repository *Repository) Update(id uint, character Character, occupationIDs
 
 		if err := tx.Model(&existing).Updates(map[string]interface{}{
 			"name":          character.Name,
+			"difficulty_id": character.DifficultyID,
 			"gender":        character.Gender,
 			"period":        character.Period,
 			"country":       character.Country,
@@ -96,7 +105,7 @@ func (repository *Repository) Update(id uint, character Character, occupationIDs
 			}
 		}
 
-		return tx.Preload("Occupations").Preload("Hints").First(&updated, id).Error
+		return tx.Preload("Difficulty").Preload("Occupations").Preload("Hints").First(&updated, id).Error
 	})
 	if err != nil {
 		return Character{}, err
@@ -112,6 +121,21 @@ func (repository *Repository) Delete(id uint) error {
 	}
 
 	return repository.db.Delete(&character).Error
+}
+
+func validateDifficulty(tx *gorm.DB, id uint) error {
+	if id == 0 {
+		return fmt.Errorf("la dificultad es obligatoria")
+	}
+
+	var count int64
+	if err := tx.Model(&difficulty.Difficulty{}).Where("id = ?", id).Count(&count).Error; err != nil {
+		return err
+	}
+	if count == 0 {
+		return fmt.Errorf("la dificultad seleccionada no existe")
+	}
+	return nil
 }
 
 func replaceHints(tx *gorm.DB, characterID uint, hints []Hint) error {

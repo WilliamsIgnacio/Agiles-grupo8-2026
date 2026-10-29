@@ -27,16 +27,23 @@ const getMatchClass = (matches: boolean) =>
 
     const levelNumber = Number(nroLevel);
     const categoryParam = searchParams.get('categoryId') ?? 'all';
-    const requestKey = `${practiceMode}:${levelNumber}:${categoryParam}`;
+    const difficultyParam = searchParams.get('difficultyId') ?? 'default';
+    const requestKey = `${practiceMode}:${levelNumber}:${categoryParam}:${difficultyParam}`;
     const categoryId = Number(categoryParam);
+    const difficultyId = Number(difficultyParam);
     const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
     const invalidCategory =
         practiceMode &&
         categoryParam !== 'all' &&
         (!Number.isSafeInteger(categoryId) || categoryId <= 0);
+    const invalidDifficulty =
+        practiceMode &&
+        difficultyParam !== 'default' &&
+        (!Number.isSafeInteger(difficultyId) || difficultyId <= 0);
     const loading = loadedRequestKey !== requestKey;
 
     const [characters, setCharacters] = useState<Character[]>([]);
+    const [targetCandidates, setTargetCandidates] = useState<Character[]>([]);
     const [targetCharacter, setTargetCharacter] = useState<Character | null>(null);
     const [guesses, setGuesses] = useState<Character[]>([]);
     const [guessName, setGuessName] = useState('');
@@ -45,10 +52,10 @@ const getMatchClass = (matches: boolean) =>
     const [attempts, setAttempts] = useState(0);
 
     const startNextPractice = () => {
-        const nextCharacters = characters.filter(
+        const nextCharacters = targetCandidates.filter(
             (character) => character.id !== targetCharacter?.id,
         );
-        const candidates = nextCharacters.length > 0 ? nextCharacters : characters;
+        const candidates = nextCharacters.length > 0 ? nextCharacters : targetCandidates;
         if (candidates.length === 0) return;
 
         sileo.clear();
@@ -65,7 +72,7 @@ const getMatchClass = (matches: boolean) =>
 
         const isAllCategories = !practiceMode || categoryParam === 'all';
 
-        if (invalidCategory) {
+        if (invalidCategory || invalidDifficulty) {
             return () => {
                 isCurrentRequest = false;
             };
@@ -101,13 +108,24 @@ const getMatchClass = (matches: boolean) =>
             }
 
             if (practiceMode) {
+                const eligibleTargets = difficultyParam === 'default'
+                    ? eligibleCharacters
+                    : eligibleCharacters.filter(
+                        (character) => character.difficultyId === difficultyId,
+                    );
+                setTargetCandidates(eligibleTargets);
+                if (eligibleTargets.length === 0) {
+                    setError('No hay personajes disponibles para la combinación de categoría y dificultad seleccionada.');
+                    return;
+                }
                 const randomIndex = Math.floor(
-                    Math.random() * eligibleCharacters.length,
+                    Math.random() * eligibleTargets.length,
                 );
-                setTargetCharacter(eligibleCharacters[randomIndex]);
+                setTargetCharacter(eligibleTargets[randomIndex]);
                 return;
             }
 
+            setTargetCandidates([]);
             const targetName = LEVEL_TARGET_NAMES[levelNumber];
             if (!targetName) {
                 setError(`No hay un personaje objetivo configurado para el nivel ${levelNumber}.`);
@@ -138,7 +156,7 @@ const getMatchClass = (matches: boolean) =>
         return () => {
             isCurrentRequest = false;
         };
-    }, [categoryId, categoryParam, invalidCategory, levelNumber, practiceMode, requestKey]);
+    }, [categoryId, categoryParam, difficultyId, difficultyParam, invalidCategory, invalidDifficulty, levelNumber, practiceMode, requestKey]);
 
     const won =
         targetCharacter !== null &&
@@ -191,11 +209,13 @@ const getMatchClass = (matches: boolean) =>
         return <Navigate to="/jugar" replace />;
     }
 
-    if (invalidCategory) {
+    if (invalidCategory || invalidDifficulty) {
         return (
             <section>
                 <h1>Modo práctica</h1>
-                <p role="alert">La categoría seleccionada no es válida.</p>
+                <p role="alert">
+                    {invalidCategory ? 'La categoría seleccionada no es válida.' : 'La dificultad seleccionada no es válida.'}
+                </p>
                 <Link to="/jugar">Volver a jugar</Link>
             </section>
         );

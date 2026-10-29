@@ -1,4 +1,5 @@
 import type { Occupation } from "./occupations";
+import type { Difficulty } from "./difficulty";
 
 export interface CharacterHint {
   id: number;
@@ -13,6 +14,8 @@ export type CharacterHintInput = Pick<CharacterHint, 'text'> & {
 export interface Character {
   id: number;
   name: string;
+  difficultyId: number;
+  difficulty: Difficulty;
   gender: string;
   period: string;
   country: string;
@@ -25,7 +28,7 @@ export interface Character {
   hints: CharacterHint[];
 }
 
-export type CharacterInput = Omit<Character, 'id' | 'occupations' | 'hints'> & {
+export type CharacterInput = Omit<Character, 'id' | 'difficulty' | 'occupations' | 'hints'> & {
   occupationIds: number[];
   hints: CharacterHintInput[];
 };

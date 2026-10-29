@@ -1,5 +1,5 @@
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import type { Category } from '../../types/category';
 import './CategoryWheelPicker.css';
 
@@ -8,6 +8,8 @@ interface CategoryWheelPickerProps {
     selectedCategoryId: string;
     onCategoryChange: (id: string) => void;
     disabled?: boolean;
+    allOptionId?: string;
+    allOptionLabel?: string;
 }
 
 export const CategoryWheelPicker: React.FC<CategoryWheelPickerProps> = ({
@@ -15,11 +17,16 @@ export const CategoryWheelPicker: React.FC<CategoryWheelPickerProps> = ({
     selectedCategoryId,
     onCategoryChange,
     disabled = false,
+    allOptionId = 'all',
+    allOptionLabel = 'Todas las categorías',
 }) => {
-    const allOptions = [
-        { id: 'all', name: 'Todas las categorías' },
-        ...categories
-    ];
+    const allOptions = useMemo(
+        () => [
+            { id: allOptionId, name: allOptionLabel },
+            ...categories,
+        ],
+        [allOptionId, allOptionLabel, categories],
+    );
 
     const containerRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -109,7 +116,7 @@ export const CategoryWheelPicker: React.FC<CategoryWheelPickerProps> = ({
 
                 return closestIndex;
             });
-        }, 80);
+        }, 200);
     };
 
     // Selección mediante clic.

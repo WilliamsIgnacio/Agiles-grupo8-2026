@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import type { CharacterInput } from '../../types/character';
 import type { Occupation } from '../../types/occupations';
+import type { Difficulty } from '../../types/difficulty';
 import './CharacterForm.css';
 
 interface CharacterFormProps {
     initialValues?: CharacterInput;
     occupations: Occupation[];
+    difficulties: Difficulty[];
     onSubmit: (formData: CharacterInput) => Promise<void> | void;
     onCancel?: () => void;
     submitButtonText?: string;
@@ -14,6 +16,7 @@ interface CharacterFormProps {
 
     const defaultValues: CharacterInput = {
     name: '',
+    difficultyId: 0,
     gender: 'Masculino',
     period: 'Edad Antigua',
     country: '',
@@ -29,6 +32,7 @@ interface CharacterFormProps {
     const CharacterForm: React.FC<CharacterFormProps> = ({
     initialValues = defaultValues,
     occupations,
+    difficulties,
     onSubmit,
     onCancel,
     submitButtonText = 'Registrar',
@@ -112,6 +116,23 @@ interface CharacterFormProps {
                 value={formData.name}
                 onChange={(e) => updateField('name', e.target.value)}
             />
+            </div>
+
+            <div className="form-group full-width">
+            <label htmlFor="character-difficulty">Dificultad</label>
+            <select
+                id="character-difficulty"
+                value={formData.difficultyId}
+                onChange={(event) => updateField('difficultyId', Number(event.target.value))}
+                required
+            >
+                <option value={0} disabled>Seleccioná una dificultad</option>
+                {difficulties.map((difficulty) => (
+                    <option key={difficulty.id} value={difficulty.id}>
+                        {difficulty.name}
+                    </option>
+                ))}
+            </select>
             </div>
 
             <div className="form-row">

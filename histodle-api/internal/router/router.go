@@ -6,6 +6,7 @@ import (
 
 	"histodle-api/internal/category"
 	"histodle-api/internal/character"
+	"histodle-api/internal/difficulty"
 	"histodle-api/internal/metrics"
 	"histodle-api/internal/occupation"
 
@@ -52,6 +53,16 @@ func New(db *gorm.DB) http.Handler {
 	categoryHandler := category.NewHandler(categoryService)
 
 	r.Get("/categories", categoryHandler.List)
+
+	difficultyRepository := difficulty.NewRepository(db)
+	difficultyService := difficulty.NewService(difficultyRepository)
+	difficultyHandler := difficulty.NewHandler(difficultyService)
+
+	r.Get("/difficulties", difficultyHandler.List)
+	r.Get("/difficulties/{id}", difficultyHandler.Get)
+	r.Post("/difficulties", difficultyHandler.Create)
+	r.Put("/difficulties/{id}", difficultyHandler.Update)
+	r.Delete("/difficulties/{id}", difficultyHandler.Delete)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

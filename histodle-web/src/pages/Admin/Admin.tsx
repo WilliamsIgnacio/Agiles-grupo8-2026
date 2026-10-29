@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import type { Occupation } from '../../types/occupations';
+import type { Difficulty } from '../../types/difficulty';
 import type { Character, CharacterInput } from '../../types/character';
 import CharacterForm from '../../components/CharacterForm/CharacterForm';
 import CharactersTable from '../../components/CharactersTable/CharactersTable';
@@ -10,10 +11,12 @@ import { sileo } from 'sileo';
 //servicios
 import { createCharacter, deleteCharacter as deleteCharacterRequest, getCharacters, updateCharacter } from '../../services/character';
 import { getOccupations } from '../../services/occupations';
+import { getDifficulties } from '../../services/difficulties';
 
 interface AdminOutletContext {
     characters: Character[];
     occupations: Occupation[];
+    difficulties: Difficulty[];
     removeCharacter: (id: number) => Promise<void>;
 }
 
@@ -21,16 +24,20 @@ const AdminLayout: React.FC = () => {
         const [characters, setCharacters] = useState<Character[]>([]);
         const [occupationsCount, setOccupationsCount] = useState(0);
         const [occupations, setOccupations] = useState<Occupation[]>([]);
+        const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
+        const [difficultiesCount, setDifficultiesCount] = useState(0);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState<string | null>(null);
         const location = useLocation();
 
     useEffect(() => {
-        Promise.all([getCharacters(), getOccupations()])
-        .then(([loadedCharacters, loadedOccupations]) => {
+        Promise.all([getCharacters(), getOccupations(), getDifficulties()])
+        .then(([loadedCharacters, loadedOccupations, loadedDifficulties]) => {
             setCharacters(loadedCharacters);
             setOccupationsCount(loadedOccupations.length);
             setOccupations(loadedOccupations);
+            setDifficultiesCount(loadedDifficulties.length);
+            setDifficulties(loadedDifficulties);
         })
         .catch((reason: unknown) => {
             setError(reason instanceof Error ? reason.message : 'Error al cargar los datos');
@@ -68,17 +75,24 @@ const AdminLayout: React.FC = () => {
                 >
                 Ocupaciones ({occupationsCount})
                 </NavLink>
+
+                <NavLink
+                to="/admin/difficulties"
+                className={({ isActive }) => `tab-button ${isActive ? 'active' : ''}`}
+                >
+                Dificultades ({difficultiesCount})
+                </NavLink>
             </div>
 
             <div className="admin-content">
-                <Outlet context={{ characters, occupations, removeCharacter }} />
+                <Outlet context={{ characters, occupations, difficulties, removeCharacter }} />
             </div>
         </section>
     );
 };
 
 export const CharacterFormOutlet: React.FC = () => {
-    const { characters, occupations } = useOutletContext<AdminOutletContext>();
+    const { characters, occupations, difficulties } = useOutletContext<AdminOutletContext>();
     const { id } = useParams();
     const navigate = useNavigate();
     const character = id ? characters.find((item) => item.id === Number(id)) : undefined;
@@ -90,6 +104,7 @@ export const CharacterFormOutlet: React.FC = () => {
     const initialValues: CharacterInput | undefined = character
         ? {
             name: character.name,
+            difficultyId: character.difficultyId,
             gender: character.gender,
             period: character.period,
             country: character.country,
@@ -135,6 +150,7 @@ export const CharacterFormOutlet: React.FC = () => {
             key={character?.id ?? 'new-character'}
             initialValues={initialValues}
             occupations={occupations}
+            difficulties={difficulties}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/admin/characters')}
             title={character ? 'Modificar personaje' : 'Registrar personaje'}

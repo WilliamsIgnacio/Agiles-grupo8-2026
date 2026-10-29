@@ -12,6 +12,7 @@ import (
 
 type characterRequest struct {
 	Name          string `json:"name"`
+	DifficultyID  uint   `json:"difficultyId"`
 	Gender        string `json:"gender"`
 	Period        string `json:"period"`
 	Country       string `json:"country"`
@@ -26,16 +27,17 @@ type characterRequest struct {
 
 func (request characterRequest) toCharacter() Character {
 	return Character{
-		Name:        request.Name,
-		Gender:      request.Gender,
-		Period:      request.Period,
-		Country:     request.Country,
-		Continent:   request.Continent,
-		KnowFor:     request.KnowFor,
-		Position:    request.Position,
-		BirthYear:   request.BirthYear,
-		YearOfDeath: request.YearOfDeath,
-		Hints:       request.Hints,
+		Name:         request.Name,
+		DifficultyID: request.DifficultyID,
+		Gender:       request.Gender,
+		Period:       request.Period,
+		Country:      request.Country,
+		Continent:    request.Continent,
+		KnowFor:      request.KnowFor,
+		Position:     request.Position,
+		BirthYear:    request.BirthYear,
+		YearOfDeath:  request.YearOfDeath,
+		Hints:        request.Hints,
 	}
 }
 
