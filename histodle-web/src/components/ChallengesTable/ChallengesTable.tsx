@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getChallenges } from '../../services/challenges';
+import { sileo } from 'sileo';
+import { deleteChallenge, getChallenges } from '../../services/challenges';
 import type { Challenge } from '../../types/challenge';
 import './ChallengesTable.css';
 
@@ -10,6 +11,7 @@ const ChallengesTable: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
 
     useEffect(() => {
         let isCurrent = true;
@@ -48,8 +50,29 @@ const ChallengesTable: React.FC = () => {
         );
     }, [challenges, searchTerm]);
 
+    const handleDelete = async (challenge: Challenge) => {
+        if (!window.confirm(`¿Querés eliminar el desafío "${challenge.name}"?`)) return;
+
+        setActionError(null);
+        try {
+            await sileo.promise(deleteChallenge(challenge.id), {
+                loading: { title: `Eliminando "${challenge.name}"...` },
+                success: { title: `Desafío "${challenge.name}" eliminado` },
+                error: { title: `Error al eliminar "${challenge.name}"` },
+            });
+            setChallenges((currentChallenges) =>
+                currentChallenges.filter((current) => current.id !== challenge.id),
+            );
+        } catch (reason: unknown) {
+            setActionError(
+                reason instanceof Error ? reason.message : `Error al eliminar "${challenge.name}"`,
+            );
+        }
+    };
+
     return (
         <div className="challenges-container">
+            {actionError && <p className="challenges-error" role="alert">{actionError}</p>}
             <div className="challenges-header-bar">
                 <div className="challenges-search-wrapper">
                     <svg
@@ -106,6 +129,14 @@ const ChallengesTable: React.FC = () => {
                                     aria-label={`Modificar ${challenge.name}`}
                                 >
                                     Modificar
+                                </button>
+                                <button
+                                    type="button"
+                                    className="challenge-delete-button"
+                                    onClick={() => handleDelete(challenge)}
+                                    aria-label={`Eliminar ${challenge.name}`}
+                                >
+                                    Eliminar
                                 </button>
                             </div>
                             <p className="challenge-card-description">{challenge.description}</p>

@@ -51,6 +51,17 @@ func (repository *Repository) Update(challenge Challenge) (Challenge, error) {
 	return repository.FindByID(challenge.ID)
 }
 
+func (repository *Repository) Delete(id uint) error {
+	result := repository.db.Delete(&Challenge{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
 func (repository *Repository) CharacterExists(characterID uint) (bool, error) {
 	var count int64
 	err := repository.db.Table("characters").Where("id = ?", characterID).Count(&count).Error

@@ -45,6 +45,7 @@ func New(db *gorm.DB) http.Handler {
 	r.Get("/challenges/{id}", challengeHandler.Get)
 	r.Post("/challenges", challengeHandler.Create)
 	r.Put("/challenges/{id}", challengeHandler.Update)
+	r.Delete("/challenges/{id}", challengeHandler.Delete)
 
 	//rutas de ocupaciones
 	occupationRepository := occupation.NewOccupationRepository(db)
