@@ -1,16 +1,14 @@
 import { useEffect, useState, type SubmitEvent } from 'react';
-import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 
 import { getCharacters } from '../../services/character';
+import { getChallenge } from '../../services/challenges';
 import type { Character } from '../../types/character';
+import type { Challenge } from '../../types/challenge';
 import './Level.css';
 
 const MAX_ATTEMPTS = 10;
-const LEVEL_TARGET_NAMES: Partial<Record<number, string>> = {
-    1: 'Albert Einstein',
-    2: 'Diego Maradona',
-};
 
 const normalizeName = (name: string) => name.trim().toLocaleLowerCase();
 
@@ -22,13 +20,13 @@ const getMatchClass = (matches: boolean) =>
     }
 
     const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
-    const { nroLevel } = useParams<{ nroLevel: string }>();
+    const { challengeId: challengeParam } = useParams<{ challengeId: string }>();
     const [searchParams] = useSearchParams();
 
-    const levelNumber = Number(nroLevel);
+    const challengeId = Number(challengeParam);
     const categoryParam = searchParams.get('categoryId') ?? 'all';
     const difficultyParam = searchParams.get('difficultyId') ?? 'default';
-    const requestKey = `${practiceMode}:${levelNumber}:${categoryParam}:${difficultyParam}`;
+    const requestKey = `${practiceMode}:${challengeParam ?? ''}:${categoryParam}:${difficultyParam}`;
     const categoryId = Number(categoryParam);
     const difficultyId = Number(difficultyParam);
     const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
@@ -40,11 +38,15 @@ const getMatchClass = (matches: boolean) =>
         practiceMode &&
         difficultyParam !== 'default' &&
         (!Number.isSafeInteger(difficultyId) || difficultyId <= 0);
+    const invalidChallenge =
+        !practiceMode &&
+        (!Number.isSafeInteger(challengeId) || challengeId <= 0);
     const loading = loadedRequestKey !== requestKey;
 
     const [characters, setCharacters] = useState<Character[]>([]);
     const [targetCandidates, setTargetCandidates] = useState<Character[]>([]);
     const [targetCharacter, setTargetCharacter] = useState<Character | null>(null);
+    const [challenge, setChallenge] = useState<Challenge | null>(null);
     const [guesses, setGuesses] = useState<Character[]>([]);
     const [guessName, setGuessName] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -72,14 +74,19 @@ const getMatchClass = (matches: boolean) =>
 
         const isAllCategories = !practiceMode || categoryParam === 'all';
 
-        if (invalidCategory || invalidDifficulty) {
+        if (invalidCategory || invalidDifficulty || invalidChallenge) {
             return () => {
                 isCurrentRequest = false;
             };
         }
 
-        getCharacters()
-        .then((loadedCharacters) => {
+        const characterRequest = getCharacters();
+        const challengeRequest = practiceMode
+            ? Promise.resolve(null)
+            : getChallenge(challengeId);
+
+        Promise.all([characterRequest, challengeRequest])
+        .then(([loadedCharacters, loadedChallenge]) => {
             if (!isCurrentRequest) return;
 
             const charactersWithOccupations = loadedCharacters.map((character) => ({
@@ -101,6 +108,7 @@ const getMatchClass = (matches: boolean) =>
             setMessage('');
             setAttempts(0);
             setCharacters(eligibleCharacters);
+            setChallenge(loadedChallenge);
 
             if (eligibleCharacters.length === 0) {
                 setError('No hay personajes disponibles para esta categoría.');
@@ -126,16 +134,11 @@ const getMatchClass = (matches: boolean) =>
             }
 
             setTargetCandidates([]);
-            const targetName = LEVEL_TARGET_NAMES[levelNumber];
-            if (!targetName) {
-                setError(`No hay un personaje objetivo configurado para el nivel ${levelNumber}.`);
-                return;
-            }
             const fixedTarget = eligibleCharacters.find(
-                (character) => normalizeName(character.name) === normalizeName(targetName),
+                (character) => character.id === loadedChallenge?.characterId,
             );
-            if (!fixedTarget) {
-                setError(`No se encontró el personaje objetivo del nivel ${levelNumber}: ${targetName}.`);
+            if (!loadedChallenge || !fixedTarget) {
+                setError('No se encontró el personaje objetivo de este desafío.');
                 return;
             }
             setTargetCharacter(fixedTarget);
@@ -156,7 +159,7 @@ const getMatchClass = (matches: boolean) =>
         return () => {
             isCurrentRequest = false;
         };
-    }, [categoryId, categoryParam, difficultyId, difficultyParam, invalidCategory, invalidDifficulty, levelNumber, practiceMode, requestKey]);
+    }, [categoryId, categoryParam, challengeId, difficultyId, difficultyParam, invalidCategory, invalidChallenge, invalidDifficulty, practiceMode, requestKey]);
 
     const won =
         targetCharacter !== null &&
@@ -205,16 +208,16 @@ const getMatchClass = (matches: boolean) =>
         }
     };
 
-    if (!practiceMode && ![1, 2].includes(levelNumber)) {
-        return <Navigate to="/jugar" replace />;
-    }
-
-    if (invalidCategory || invalidDifficulty) {
+    if (invalidCategory || invalidDifficulty || invalidChallenge) {
         return (
             <section>
-                <h1>Modo práctica</h1>
+                <h1>{practiceMode ? 'Modo práctica' : 'Desafío'}</h1>
                 <p role="alert">
-                    {invalidCategory ? 'La categoría seleccionada no es válida.' : 'La dificultad seleccionada no es válida.'}
+                    {invalidCategory
+                        ? 'La categoría seleccionada no es válida.'
+                        : invalidDifficulty
+                            ? 'La dificultad seleccionada no es válida.'
+                            : 'El desafío seleccionado no es válido.'}
                 </p>
                 <Link to="/jugar">Volver a jugar</Link>
             </section>
@@ -226,9 +229,9 @@ const getMatchClass = (matches: boolean) =>
     if (error) {
         return (
         <section>
-            <h1>Nivel {levelNumber}</h1>
+            <h1>{practiceMode ? 'Modo práctica' : 'Desafío'}</h1>
             <p role="alert">{error}</p>
-            <Link to="/jugar">{practiceMode ? 'Volver a jugar' : 'Volver a niveles'}</Link>
+            <Link to="/jugar">{practiceMode ? 'Volver a jugar' : 'Volver a desafíos'}</Link>
         </section>
         );
     }
@@ -236,9 +239,9 @@ const getMatchClass = (matches: boolean) =>
     if (!targetCharacter) {
         return (
         <section>
-            <h1>Nivel {levelNumber}</h1>
+            <h1>{practiceMode ? 'Modo práctica' : 'Desafío'}</h1>
             <p>No se pudo elegir un personaje para esta partida.</p>
-            <Link to="/jugar">Volver a niveles</Link>
+            <Link to="/jugar">Volver a desafíos</Link>
         </section>
         );
     }
@@ -252,7 +255,7 @@ const getMatchClass = (matches: boolean) =>
     return (
         <section className="level-page">
             <header className='level-header'>
-                <h1>{practiceMode ? 'Modo práctica' : `Nivel ${levelNumber}`}</h1>
+                <h1>{practiceMode ? 'Modo práctica' : challenge?.name}</h1>
                 <div className='attempts-container'>
                     <p className='attempts-text'>
                         {practiceMode ? (
@@ -280,6 +283,9 @@ const getMatchClass = (matches: boolean) =>
                     </div>}
                 </div>
             </header>
+            {!practiceMode && challenge?.description && (
+                <p className="challenge-description">{challenge.description}</p>
+            )}
 
             <form onSubmit={submitGuess}>
                 <label htmlFor="character-guess">Ingresá un personaje</label>
@@ -448,7 +454,7 @@ const getMatchClass = (matches: boolean) =>
                 </table>
             )}
 
-            <Link to="/jugar">Volver a niveles</Link>
+            <Link to="/jugar">Volver a desafíos</Link>
         </section>
     );
 };

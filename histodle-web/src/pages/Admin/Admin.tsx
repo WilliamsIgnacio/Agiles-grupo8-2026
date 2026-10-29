@@ -5,6 +5,7 @@ import type { Difficulty } from '../../types/difficulty';
 import type { Character, CharacterInput } from '../../types/character';
 import CharacterForm from '../../components/CharacterForm/CharacterForm';
 import CharactersTable from '../../components/CharactersTable/CharactersTable';
+import ChallengesForm from '../../components/ChallengesForm/ChallengesForm';
 import './Admin.css';
 import { sileo } from 'sileo';
 
@@ -12,6 +13,7 @@ import { sileo } from 'sileo';
 import { createCharacter, deleteCharacter as deleteCharacterRequest, getCharacters, updateCharacter } from '../../services/character';
 import { getOccupations } from '../../services/occupations';
 import { getDifficulties } from '../../services/difficulties';
+import { getChallenges } from '../../services/challenges';
 
 interface AdminOutletContext {
     characters: Character[];
@@ -26,18 +28,20 @@ const AdminLayout: React.FC = () => {
         const [occupations, setOccupations] = useState<Occupation[]>([]);
         const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
         const [difficultiesCount, setDifficultiesCount] = useState(0);
+        const [challengesCount, setChallengesCount] = useState(0);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState<string | null>(null);
         const location = useLocation();
 
     useEffect(() => {
-        Promise.all([getCharacters(), getOccupations(), getDifficulties()])
-        .then(([loadedCharacters, loadedOccupations, loadedDifficulties]) => {
+        Promise.all([getCharacters(), getOccupations(), getDifficulties(), getChallenges()])
+        .then(([loadedCharacters, loadedOccupations, loadedDifficulties, loadedChallenges]) => {
             setCharacters(loadedCharacters);
             setOccupationsCount(loadedOccupations.length);
             setOccupations(loadedOccupations);
             setDifficultiesCount(loadedDifficulties.length);
             setDifficulties(loadedDifficulties);
+            setChallengesCount(loadedChallenges.length);
         })
         .catch((reason: unknown) => {
             setError(reason instanceof Error ? reason.message : 'Error al cargar los datos');
@@ -82,6 +86,13 @@ const AdminLayout: React.FC = () => {
                 >
                 Dificultades ({difficultiesCount})
                 </NavLink>
+
+                <NavLink
+                to="/admin/challenges"
+                className={({ isActive }) => `tab-button ${isActive ? 'active' : ''}`}
+                >
+                Desafíos ({challengesCount})
+                </NavLink>
             </div>
 
             <div className="admin-content">
@@ -89,6 +100,11 @@ const AdminLayout: React.FC = () => {
             </div>
         </section>
     );
+};
+
+export const ChallengesFormOutlet: React.FC = () => {
+    const { characters } = useOutletContext<AdminOutletContext>();
+    return <ChallengesForm characters={characters} />;
 };
 
 export const CharacterFormOutlet: React.FC = () => {

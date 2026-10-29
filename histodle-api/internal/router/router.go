@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"histodle-api/internal/category"
+	"histodle-api/internal/challenge"
 	"histodle-api/internal/character"
 	"histodle-api/internal/difficulty"
 	"histodle-api/internal/metrics"
@@ -35,6 +36,14 @@ func New(db *gorm.DB) http.Handler {
 	r.Post("/characters", characterHandler.Create)
 	r.Put("/characters/{id}", characterHandler.Update)
 	r.Delete("/characters/{id}", characterHandler.Delete)
+
+	challengeRepository := challenge.NewRepository(db)
+	challengeService := challenge.NewService(challengeRepository)
+	challengeHandler := challenge.NewHandler(challengeService)
+
+	r.Get("/challenges", challengeHandler.List)
+	r.Get("/challenges/{id}", challengeHandler.Get)
+	r.Post("/challenges", challengeHandler.Create)
 
 	//rutas de ocupaciones
 	occupationRepository := occupation.NewOccupationRepository(db)

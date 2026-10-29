@@ -2,48 +2,36 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getCategories } from '../../services/categories';
 import { getDifficulties } from '../../services/difficulties';
+import { getChallenges } from '../../services/challenges';
 import type { Category } from '../../types/category';
 import type { Difficulty } from '../../types/difficulty';
+import type { Challenge } from '../../types/challenge';
 import { CategoryWheelPicker } from '../../components/CategoryWheelPicker/CategoryWheelPicker';
 import './Jugar.css';
 
 const Jugar: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
+    const [challenges, setChallenges] = useState<Challenge[]>([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState('all');
     const [selectedDifficultyId, setSelectedDifficultyId] = useState('default');
     const [categoriesLoading, setCategoriesLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const levels = [
-        {
-            number: 1,
-            title: 'Desafío histórico',
-            description: 'Descubrí qué personaje se esconde detrás de las pistas.',
-            difficulty: 'Fácil',
-            attempts: 10,
-        },
-        {
-            number: 2,
-            title: 'Otro personaje misterioso',
-            description: 'Elegí personajes y usá las pistas para acercarte al objetivo.',
-            difficulty: 'Fácil',
-            attempts: 10,
-        },
-    ];
     const practiceQuery = `?categoryId=${selectedCategoryId}&difficultyId=${selectedDifficultyId}`;
 
     useEffect(() => {
-        Promise.all([getCategories(), getDifficulties()])
-            .then(([loadedCategories, loadedDifficulties]) => {
+        Promise.all([getCategories(), getDifficulties(), getChallenges()])
+            .then(([loadedCategories, loadedDifficulties, loadedChallenges]) => {
                 setCategories(loadedCategories);
                 setDifficulties(loadedDifficulties);
+                setChallenges(loadedChallenges);
             })
             .catch((reason: unknown) => {
                 setError(
                     reason instanceof Error
                         ? reason.message
-                        : 'Error al cargar las opciones de práctica',
+                        : 'Error al cargar los datos de juego',
                 );
             })
             .finally(() => setCategoriesLoading(false));
@@ -54,8 +42,7 @@ const Jugar: React.FC = () => {
             <p className="eyebrow">Un personaje. pocas pistas.</p>
             <h1 className="jugar-title">¿Quién se esconde detrás de la historia?</h1>
             <p className="subtitle">
-                Elegí una categoría para el modo práctica o jugá los niveles, que
-                usan todos los personajes y tienen un objetivo fijo.
+                Elegí una categoría y dificultad para el modo práctica, o jugá uno de los desafíos.
             </p>
 
             <div className="legend-row">
@@ -106,7 +93,7 @@ const Jugar: React.FC = () => {
                 {categoriesLoading && <p role="status">Cargando opciones de práctica...</p>}
                 {error && <p className="category-error" role="alert">{error}</p>}
 
-            <h2 className="levels-title">Elegí un nivel</h2>
+            <h2 className="levels-title">Modo práctica</h2>
             <section className="level-card practice-card">
                 <div className="level-header">
                     <span className="level-badge">Hasta 10 intentos</span>
@@ -125,29 +112,32 @@ const Jugar: React.FC = () => {
                 </div>
             </section>
 
-            <h2 className="levels-title">Niveles</h2>
+            <h2 className="levels-title">Desafíos</h2>
             <div className="level-grid">
-                {levels.map((level) => (
-                    <div className="level-card" key={level.number}>
+                {challenges.map((challenge) => (
+                    <div className="level-card" key={challenge.id}>
                         <div className="level-header">
-                            <span className="level-badge">Nivel {level.number}</span>
-                            <span className={`level-difficulty ${level.difficulty.toLowerCase()}`}>
-                                {level.difficulty}
+                            <span className="level-badge">Desafío {challenge.id}</span>
+                            <span className={`level-difficulty ${challenge.character.difficulty.name}`}>
+                                {challenge.character.difficulty.name}
                             </span>
                         </div>
 
-                        <h3>{level.title}</h3>
-                        <p className="level-description">{level.description}</p>
+                        <h3>{challenge.name}</h3>
+                        <p className="level-description">{challenge.description}</p>
 
-                    <div className="level-footer">
-                        <span className="attempts">{level.attempts} intentos</span>
-                        <Link className="play-link" to={`/jugar/nivel/${level.number}`}>
-                            Jugar ➜
-                        </Link>
-                    </div>
+                        <div className="level-footer">
+                            <span className="attempts">10 intentos</span>
+                            <Link className="play-link" to={`/jugar/desafio/${challenge.id}`}>
+                                Jugar ➜
+                            </Link>
+                        </div>
                     </div>
                 ))}
             </div>
+            {!categoriesLoading && challenges.length === 0 && !error && (
+                <p>No hay desafíos disponibles.</p>
+            )}
         </div>
     );
 };
