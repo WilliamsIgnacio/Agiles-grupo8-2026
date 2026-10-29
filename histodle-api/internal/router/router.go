@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"histodle-api/internal/character"
-	"histodle-api/internal/occupation"
 	"histodle-api/internal/category"
+	"histodle-api/internal/character"
+	"histodle-api/internal/metrics"
+	"histodle-api/internal/occupation"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gorm.io/gorm"
 )
 
@@ -21,6 +23,7 @@ func New(db *gorm.DB) http.Handler {
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
 	}))
+	r.Use(metrics.Middleware)
 
 	characterRepository := character.NewRepository(db)
 	characterService := character.NewService(characterRepository)
@@ -57,6 +60,7 @@ func New(db *gorm.DB) http.Handler {
 			"status": "ok",
 		})
 	})
+	r.Handle("/metrics", promhttp.Handler())
 
 	return r
 }
