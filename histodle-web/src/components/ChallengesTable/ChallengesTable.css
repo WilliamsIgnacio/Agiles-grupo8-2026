@@ -1,0 +1,134 @@
+.challenges-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.challenges-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.challenges-search-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.challenges-search-icon {
+    position: absolute;
+    left: 1.2rem;
+    color: #8b8595;
+    pointer-events: none;
+}
+
+.challenges-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #281f36;
+    border-radius: 30px;
+    padding: 0.75rem 1.25rem 0.75rem 3rem;
+    background: #0b0711;
+    color: #ffffff;
+    font: inherit;
+}
+
+.challenges-search-input::placeholder {
+    color: #8b8595;
+}
+
+.challenges-search-input:focus {
+    border-color: #a855f7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+}
+
+.btn-register-challenge {
+    border: none;
+    border-radius: 30px;
+    padding: 0.75rem 1.5rem;
+    background: #b632df;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.btn-register-challenge:hover {
+    opacity: 0.92;
+}
+
+.challenges-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.challenge-admin-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    border: 1px solid #281f36;
+    border-radius: 16px;
+    background: #120c1a;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.challenge-admin-name {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.2rem;
+}
+
+.challenge-card-description {
+    margin: 0;
+    color: #d1cbd9;
+    line-height: 1.5;
+}
+
+.challenge-admin-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: #8b8595;
+    font-size: 0.85rem;
+}
+
+.challenges-status,
+.challenges-error {
+    padding: 2rem 0;
+    color: #8b8595;
+    text-align: center;
+}
+
+.challenges-error {
+    color: #f87171;
+}
+
+@media (max-width: 800px) {
+    .challenges-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .challenges-header-bar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .btn-register-challenge {
+        align-self: flex-start;
+    }
+
+    .challenges-grid {
+        grid-template-columns: 1fr;
+    }
+}
