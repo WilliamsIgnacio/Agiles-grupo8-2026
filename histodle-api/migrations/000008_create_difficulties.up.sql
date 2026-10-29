@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS difficulties (
+    id BIGSERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+);

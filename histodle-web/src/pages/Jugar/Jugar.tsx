@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getCategories } from '../../services/categories';
+import { getDifficulties } from '../../services/difficulties';
 import type { Category } from '../../types/category';
+import type { Difficulty } from '../../types/difficulty';
 import { CategoryWheelPicker } from '../../components/CategoryWheelPicker/CategoryWheelPicker';
 import './Jugar.css';
 
 const Jugar: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
+    const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState('all');
+    const [selectedDifficultyId, setSelectedDifficultyId] = useState('default');
     const [categoriesLoading, setCategoriesLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -27,16 +31,19 @@ const Jugar: React.FC = () => {
             attempts: 10,
         },
     ];
-    const categoryQuery = `?categoryId=${selectedCategoryId}`;
+    const practiceQuery = `?categoryId=${selectedCategoryId}&difficultyId=${selectedDifficultyId}`;
 
     useEffect(() => {
-        getCategories()
-            .then(setCategories)
+        Promise.all([getCategories(), getDifficulties()])
+            .then(([loadedCategories, loadedDifficulties]) => {
+                setCategories(loadedCategories);
+                setDifficulties(loadedDifficulties);
+            })
             .catch((reason: unknown) => {
                 setError(
                     reason instanceof Error
                         ? reason.message
-                        : 'Error al cargar las categorías',
+                        : 'Error al cargar las opciones de práctica',
                 );
             })
             .finally(() => setCategoriesLoading(false));
@@ -74,31 +81,30 @@ const Jugar: React.FC = () => {
                 </div>
             </div>
 
-            <div className="category-selector">
-        <label htmlFor="game-category">Categoría de personajes (modo práctica)</label>
-        
-        {/* Selector de Rueda Remplazando al <select> */}
-        <CategoryWheelPicker
-            categories={categories}
-            selectedCategoryId={selectedCategoryId}
-            onCategoryChange={setSelectedCategoryId}
-            disabled={categoriesLoading}
-        />
-        </div>
+                <div className="category-selector">
+                    <label htmlFor="game-category">Categoría de personajes (modo práctica)</label>
+                    <CategoryWheelPicker
+                        categories={categories}
+                        selectedCategoryId={selectedCategoryId}
+                        onCategoryChange={setSelectedCategoryId}
+                        disabled={categoriesLoading}
+                    />
+                </div>
 
-        {categoriesLoading && <p role="status">Cargando categorías...</p>}
-        {error && (
-            <p className="category-error" role="alert">
-            {error}
-            </p>
-        )}
+                <div className="category-selector">
+                    <label htmlFor="game-difficulty">Dificultad del personaje misterioso</label>
+                    <CategoryWheelPicker
+                        categories={difficulties}
+                        selectedCategoryId={selectedDifficultyId}
+                        onCategoryChange={setSelectedDifficultyId}
+                        disabled={categoriesLoading}
+                        allOptionId="default"
+                        allOptionLabel="Por defecto"
+                    />
+                </div>
 
-            {categoriesLoading && <p role="status">Cargando categorías...</p>}
-            {error && (
-                <p className="category-error" role="alert">
-                    {error}
-                </p>
-            )}
+                {categoriesLoading && <p role="status">Cargando opciones de práctica...</p>}
+                {error && <p className="category-error" role="alert">{error}</p>}
 
             <h2 className="levels-title">Elegí un nivel</h2>
             <section className="level-card practice-card">
@@ -113,7 +119,7 @@ const Jugar: React.FC = () => {
                 </p>
                 <div className="level-footer">
                     <span className="attempts">Un personaje nuevo en cada ronda</span>
-                    <Link className="play-link" to={`/jugar/practica${categoryQuery}`}>
+                    <Link className="play-link" to={`/jugar/practica${practiceQuery}`}>
                         Practicar ➜
                     </Link>
                 </div>

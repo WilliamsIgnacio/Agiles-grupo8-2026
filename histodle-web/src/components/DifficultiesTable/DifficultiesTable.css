@@ -1,0 +1,111 @@
+.difficulties-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem 100px;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.create-difficulty-bar,
+.difficulty-edit-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.difficulty-input {
+    flex: 1;
+    min-width: 0;
+    background-color: #0d0914;
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    border-radius: 20px;
+    color: #ffffff;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.difficulty-input:focus {
+    border-color: #a855f7;
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.3);
+}
+
+.btn-create-difficulty,
+.difficulty-action {
+    background: linear-gradient(135deg, #a855f7, #8b5cf6);
+    color: #ffffff;
+    border: 0;
+    border-radius: 20px;
+    padding: 0.65rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-create-difficulty:disabled,
+.difficulty-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.difficulties-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.difficulty-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background-color: #120c1a;
+    border: 1px solid #281f36;
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+}
+
+.difficulty-info,
+.difficulty-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.difficulty-name {
+    color: #ffffff;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.difficulty-id,
+.difficulties-empty {
+    color: #8b8595;
+    font-size: 0.85rem;
+}
+
+.difficulty-action {
+    background: #1a1423;
+    border: 1px solid #2d243a;
+}
+
+.difficulty-action.delete {
+    color: #f0a2b3;
+    border-color: #5b2b3a;
+}
+
+.difficulty-edit-form {
+    flex-wrap: wrap;
+}
+
+@media (max-width: 520px) {
+    .create-difficulty-bar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

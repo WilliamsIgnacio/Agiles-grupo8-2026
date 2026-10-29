@@ -61,6 +61,10 @@ const CharacterDetail: React.FC<CharacterDetailProps> = ({
 
             <div className="detail-grid">
             <div className="detail-field">
+                <span className="field-label">DIFICULTAD</span>
+                <span className="field-value">{character.difficulty?.name || 'Sin datos'}</span>
+            </div>
+            <div className="detail-field">
                 <span className="field-label">PAÍS</span>
                 <span className="field-value">{character.country || 'Sin datos'}</span>
             </div>

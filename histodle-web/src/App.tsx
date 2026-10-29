@@ -7,6 +7,7 @@ import Navbar from './components/Navbar/Navbar';
 import Admin, { CharacterFormOutlet, CharactersTableOutlet } from './pages/Admin/Admin';
 import Jugar from './pages/Jugar/Jugar';
 import OccupationsTable from './components/OccupationsTable/OccupationsTable';
+import DifficultiesTable from './components/DifficultiesTable/DifficultiesTable';
 import Level from './components/Level/Level';
 
 
@@ -54,6 +55,10 @@ const router = createBrowserRouter([
                                 occupations={[]}
                             />
                         ),
+                    },
+                    {
+                        path: 'difficulties',
+                        element: <DifficultiesTable />,
                     },
                 ],
             },
