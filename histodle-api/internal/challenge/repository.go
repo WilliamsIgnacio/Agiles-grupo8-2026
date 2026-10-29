@@ -37,6 +37,20 @@ func (repository *Repository) Create(challenge Challenge) (Challenge, error) {
 	return repository.FindByID(challenge.ID)
 }
 
+func (repository *Repository) Update(challenge Challenge) (Challenge, error) {
+	err := repository.db.Model(&Challenge{}).
+		Where("id = ?", challenge.ID).
+		Updates(map[string]any{
+			"character_id": challenge.CharacterID,
+			"name":         challenge.Name,
+			"description":  challenge.Description,
+		}).Error
+	if err != nil {
+		return Challenge{}, err
+	}
+	return repository.FindByID(challenge.ID)
+}
+
 func (repository *Repository) CharacterExists(characterID uint) (bool, error) {
 	var count int64
 	err := repository.db.Table("characters").Where("id = ?", characterID).Count(&count).Error

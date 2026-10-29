@@ -87,6 +87,30 @@
     font-size: 1.2rem;
 }
 
+.challenge-admin-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.challenge-edit-button {
+    flex-shrink: 0;
+    border: 1px solid #554963;
+    border-radius: 16px;
+    padding: 0.35rem 0.75rem;
+    background: transparent;
+    color: #d7b8ed;
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.challenge-edit-button:hover {
+    border-color: #b632df;
+    color: #ffffff;
+}
+
 .challenge-card-description {
     margin: 0;
     color: #d1cbd9;

@@ -30,3 +30,19 @@ export const createChallenge = async (challenge: ChallengeInput): Promise<Challe
     }
     return response.json();
 };
+
+export const updateChallenge = async (
+    id: number,
+    challenge: ChallengeInput,
+): Promise<Challenge> => {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(challenge),
+    });
+    if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Error al modificar el desafío: ${response.statusText}`);
+    }
+    return response.json();
+};

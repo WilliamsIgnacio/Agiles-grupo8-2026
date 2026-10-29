@@ -68,6 +68,10 @@ const router = createBrowserRouter([
                         path: 'challenges/register',
                         element: <ChallengesFormOutlet />,
                     },
+                    {
+                        path: 'challenges/edit/:id',
+                        element: <ChallengesFormOutlet />,
+                    },
                 ],
             },
         ],

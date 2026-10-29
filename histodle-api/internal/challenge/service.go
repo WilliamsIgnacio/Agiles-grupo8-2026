@@ -28,23 +28,42 @@ func (service *Service) Get(id uint) (Challenge, error) {
 func (service *Service) Create(challenge Challenge) (Challenge, error) {
 	challenge.Name = strings.TrimSpace(challenge.Name)
 	challenge.Description = strings.TrimSpace(challenge.Description)
+	if err := service.validate(challenge); err != nil {
+		return Challenge{}, err
+	}
+	return service.repository.Create(challenge)
+}
+
+func (service *Service) Update(challenge Challenge) (Challenge, error) {
+	challenge.Name = strings.TrimSpace(challenge.Name)
+	challenge.Description = strings.TrimSpace(challenge.Description)
+	if err := service.validate(challenge); err != nil {
+		return Challenge{}, err
+	}
+	if _, err := service.repository.FindByID(challenge.ID); err != nil {
+		return Challenge{}, fmt.Errorf("Error al obtener el desafío: %w", err)
+	}
+	return service.repository.Update(challenge)
+}
+
+func (service *Service) validate(challenge Challenge) error {
 	if challenge.Name == "" {
-		return Challenge{}, fmt.Errorf("El nombre del desafío no puede estar vacío")
+		return fmt.Errorf("El nombre del desafío no puede estar vacío")
 	}
 	if challenge.Description == "" {
-		return Challenge{}, fmt.Errorf("La descripción del desafío no puede estar vacía")
+		return fmt.Errorf("La descripción del desafío no puede estar vacía")
 	}
 	if challenge.CharacterID == 0 {
-		return Challenge{}, fmt.Errorf("El personaje objetivo es obligatorio")
+		return fmt.Errorf("El personaje objetivo es obligatorio")
 	}
 
 	exists, err := service.repository.CharacterExists(challenge.CharacterID)
 	if err != nil {
-		return Challenge{}, fmt.Errorf("Error al validar el personaje objetivo: %w", err)
+		return fmt.Errorf("Error al validar el personaje objetivo: %w", err)
 	}
 	if !exists {
-		return Challenge{}, fmt.Errorf("El personaje objetivo no existe")
+		return fmt.Errorf("El personaje objetivo no existe")
 	}
 
-	return service.repository.Create(challenge)
+	return nil
 }

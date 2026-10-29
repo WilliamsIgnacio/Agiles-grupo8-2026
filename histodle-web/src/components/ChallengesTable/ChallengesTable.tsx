@@ -97,7 +97,17 @@ const ChallengesTable: React.FC = () => {
                 <div className="challenges-grid">
                     {filteredChallenges.map((challenge) => (
                         <article className="challenge-admin-card" key={challenge.id}>
-                            <h2 className="challenge-admin-name">{challenge.name}</h2>
+                            <div className="challenge-admin-card-header">
+                                <h2 className="challenge-admin-name">{challenge.name}</h2>
+                                <button
+                                    type="button"
+                                    className="challenge-edit-button"
+                                    onClick={() => navigate(`/admin/challenges/edit/${challenge.id}`)}
+                                    aria-label={`Modificar ${challenge.name}`}
+                                >
+                                    Modificar
+                                </button>
+                            </div>
                             <p className="challenge-card-description">{challenge.description}</p>
                             <div className="challenge-admin-details">
                                 <span>Personaje a adivinar: {challenge.character.name}</span>
