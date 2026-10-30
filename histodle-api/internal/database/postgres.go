@@ -19,7 +19,9 @@ func Connect(cfg config.Config) (*gorm.DB, error) {
 		RawQuery: query.Encode(),
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn.String()), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn.String()), &gorm.Config{
+		TranslateError: true,
+	})
 	if err != nil {
 		return nil, err
 	}

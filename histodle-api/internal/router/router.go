@@ -10,6 +10,7 @@ import (
 	"histodle-api/internal/difficulty"
 	"histodle-api/internal/metrics"
 	"histodle-api/internal/occupation"
+	"histodle-api/internal/score"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -74,6 +75,17 @@ func New(db *gorm.DB) http.Handler {
 	r.Post("/difficulties", difficultyHandler.Create)
 	r.Put("/difficulties/{id}", difficultyHandler.Update)
 	r.Delete("/difficulties/{id}", difficultyHandler.Delete)
+
+	scoreRepository := score.NewRepository(db)
+	scoreService := score.NewService(scoreRepository)
+	scoreHandler := score.NewHandler(scoreService)
+
+	r.Get("/scores", scoreHandler.List)
+	r.Get("/scores/{id}", scoreHandler.Get)
+	r.Get("/scores/difficulty/{difficultyId}", scoreHandler.GetByDifficultyID)
+	r.Post("/scores", scoreHandler.Create)
+	r.Put("/scores/{id}", scoreHandler.Update)
+	r.Delete("/scores/{id}", scoreHandler.Delete)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

@@ -4,7 +4,7 @@ import { Toaster } from 'sileo';
 
 //importacion de componentes
 import Navbar from './components/Navbar/Navbar';
-import Admin, { CharacterFormOutlet, CharactersTableOutlet, ChallengesFormOutlet, ChallengesTableOutlet } from './pages/Admin/Admin';
+import Admin, { CharacterFormOutlet, CharactersTableOutlet, ChallengesFormOutlet, ChallengesTableOutlet, ScoresTableOutlet } from './pages/Admin/Admin';
 import Jugar from './pages/Jugar/Jugar';
 import OccupationsTable from './components/OccupationsTable/OccupationsTable';
 import DifficultiesTable from './components/DifficultiesTable/DifficultiesTable';
@@ -71,6 +71,10 @@ const router = createBrowserRouter([
                     {
                         path: 'challenges/edit/:id',
                         element: <ChallengesFormOutlet />,
+                    },
+                    {
+                        path: 'scores',
+                        element: <ScoresTableOutlet />,
                     },
                 ],
             },
