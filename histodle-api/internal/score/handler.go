@@ -74,6 +74,34 @@ func (handler *Handler) GetByDifficultyID(w http.ResponseWriter, r *http.Request
 	_ = json.NewEncoder(w).Encode(score)
 }
 
+func (handler *Handler) CalculateByDifficultyID(w http.ResponseWriter, r *http.Request) {
+	difficultyID, err := strconv.ParseUint(chi.URLParam(r, "difficultyId"), 10, 64)
+	if err != nil {
+		http.Error(w, "ID de dificultad inválido", http.StatusBadRequest)
+		return
+	}
+
+	var input CalculationInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	result, err := handler.service.CalculateByDifficultyID(uint(difficultyID), input)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Configuración de puntaje no encontrada", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(result)
+}
+
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var score Score
 	if err := json.NewDecoder(r.Body).Decode(&score); err != nil {

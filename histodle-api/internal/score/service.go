@@ -12,6 +12,16 @@ type Service struct {
 	repository *Repository
 }
 
+type CalculationInput struct {
+	AttemptsUsed int  `json:"attemptsUsed"`
+	HintsUsed    int  `json:"hintsUsed"`
+	Won          bool `json:"won"`
+}
+
+type CalculationResult struct {
+	Score uint `json:"score"`
+}
+
 func NewService(repository *Repository) *Service {
 	return &Service{repository: repository}
 }
@@ -38,6 +48,19 @@ func (service *Service) GetByDifficultyID(difficultyID uint) (Score, error) {
 		return Score{}, fmt.Errorf("error al obtener el puntaje de la dificultad: %w", err)
 	}
 	return score, nil
+}
+
+func (service *Service) CalculateByDifficultyID(difficultyID uint, input CalculationInput) (CalculationResult, error) {
+	config, err := service.GetByDifficultyID(difficultyID)
+	if err != nil {
+		return CalculationResult{}, err
+	}
+
+	finalScore, err := Calculate(config, input.AttemptsUsed, input.HintsUsed, input.Won)
+	if err != nil {
+		return CalculationResult{}, err
+	}
+	return CalculationResult{Score: finalScore}, nil
 }
 
 func (service *Service) Create(score Score) (Score, error) {
