@@ -78,6 +78,13 @@ func (service *Service) Update(id uint, score Score) (Score, error) {
 	return updated, nil
 }
 
+func (service *Service) Delete(id uint) error {
+	if id == 0 {
+		return fmt.Errorf("el ID del puntaje es obligatorio")
+	}
+	return service.repository.Delete(id)
+}
+
 func validateValues(score Score) error {
 	if score.MinScore > score.MaxScore {
 		return fmt.Errorf("el puntaje mínimo no puede superar al puntaje máximo")

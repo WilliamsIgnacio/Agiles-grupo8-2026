@@ -55,3 +55,12 @@ func (repository *Repository) Update(id uint, score Score) (Score, error) {
 	existing.HintPenaltyPercentage = score.HintPenaltyPercentage
 	return existing, nil
 }
+
+func (repository *Repository) Delete(id uint) error {
+	var score Score
+	if err := repository.db.First(&score, id).Error; err != nil {
+		return err
+	}
+
+	return repository.db.Delete(&score).Error
+}

@@ -119,3 +119,21 @@ func (handler *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(updated)
 }
+
+func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
+	if err := handler.service.Delete(uint(id)); errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Puntaje no encontrado", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, "Error al eliminar el puntaje", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

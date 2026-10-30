@@ -84,6 +84,7 @@ func New(db *gorm.DB) http.Handler {
 	r.Get("/scores/level/{levelId}", scoreHandler.GetByLevelID)
 	r.Post("/scores", scoreHandler.Create)
 	r.Put("/scores/{id}", scoreHandler.Update)
+	r.Delete("/scores/{id}", scoreHandler.Delete)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
