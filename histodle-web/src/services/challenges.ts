@@ -46,3 +46,11 @@ export const updateChallenge = async (
     }
     return response.json();
 };
+
+export const deleteChallenge = async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+    if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Error al eliminar el desafío: ${response.statusText}`);
+    }
+};

@@ -83,6 +83,22 @@ func (handler *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, updated)
 }
 
+func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(r)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+	if err := handler.service.Delete(id); errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Desafío no encontrado", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, "Error al eliminar el desafío", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func parseID(r *http.Request) (uint, error) {
 	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 	return uint(id), err

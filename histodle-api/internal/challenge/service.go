@@ -46,6 +46,13 @@ func (service *Service) Update(challenge Challenge) (Challenge, error) {
 	return service.repository.Update(challenge)
 }
 
+func (service *Service) Delete(id uint) error {
+	if err := service.repository.Delete(id); err != nil {
+		return fmt.Errorf("Error al eliminar el desafío: %w", err)
+	}
+	return nil
+}
+
 func (service *Service) validate(challenge Challenge) error {
 	if challenge.Name == "" {
 		return fmt.Errorf("El nombre del desafío no puede estar vacío")

@@ -111,6 +111,23 @@
     color: #ffffff;
 }
 
+.challenge-delete-button {
+    flex-shrink: 0;
+    border: 1px solid #71313b;
+    border-radius: 16px;
+    padding: 0.35rem 0.75rem;
+    background: transparent;
+    color: #fca5a5;
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.challenge-delete-button:hover {
+    border-color: #ef4444;
+    color: #ffffff;
+}
+
 .challenge-card-description {
     margin: 0;
     color: #d1cbd9;
