@@ -4,6 +4,7 @@ import { sileo } from 'sileo';
 
 import { getCharacters } from '../../services/character';
 import { getChallenge } from '../../services/challenges';
+import { calculateScore } from '../../services/scores';
 import type { Character } from '../../types/character';
 import type { Challenge } from '../../types/challenge';
 import './Level.css';
@@ -52,6 +53,9 @@ const getMatchClass = (matches: boolean) =>
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState('');
     const [attempts, setAttempts] = useState(0);
+    const [hintsUsed, setHintsUsed] = useState(0);
+    const [finalScore, setFinalScore] = useState<number | null>(null);
+    const [scoreLoading, setScoreLoading] = useState(false);
 
     const startNextPractice = () => {
         const nextCharacters = targetCandidates.filter(
@@ -67,6 +71,9 @@ const getMatchClass = (matches: boolean) =>
         setGuessName('');
         setMessage('');
         setAttempts(0);
+        setHintsUsed(0);
+        setFinalScore(null);
+        setScoreLoading(false);
     };
 
     useEffect(() => {
@@ -107,6 +114,9 @@ const getMatchClass = (matches: boolean) =>
             setGuessName('');
             setMessage('');
             setAttempts(0);
+            setHintsUsed(0);
+            setFinalScore(null);
+            setScoreLoading(false);
             setCharacters(eligibleCharacters);
             setChallenge(loadedChallenge);
 
@@ -169,7 +179,12 @@ const getMatchClass = (matches: boolean) =>
         setAttempts((currentAttempts) => currentAttempts + 1);
     };
 
-    const submitGuess = (event: SubmitEvent<HTMLFormElement>) => {
+    const revealHint = () => {
+        if (!targetCharacter || hintsUsed >= targetCharacter.hints.length || won) return;
+        setHintsUsed((currentHints) => currentHints + 1);
+    };
+
+    const submitGuess = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         if (attempts >= MAX_ATTEMPTS) return;
@@ -193,12 +208,29 @@ const getMatchClass = (matches: boolean) =>
         setGuesses((currentGuesses) => [guess, ...currentGuesses]);
         setGuessName('');
         setMessage('Intento agregado.');
-        if (practiceMode && guess.id === targetCharacter?.id) {
+        if (guess.id === targetCharacter?.id) {
+            setScoreLoading(true);
             sileo.success({
                 title: '¡Adivinaste el personaje!',
                 description: `La respuesta era ${targetCharacter.name}.`,
                 duration: 5000,
             });
+            try {
+                const result = await calculateScore(targetCharacter.difficultyId, {
+                    attemptsUsed: attempts + 1,
+                    hintsUsed,
+                    won: true,
+                });
+                setFinalScore(result.score);
+            } catch (reason: unknown) {
+                setMessage(
+                    reason instanceof Error
+                        ? reason.message
+                        : 'No se pudo calcular el puntaje.',
+                );
+            } finally {
+                setScoreLoading(false);
+            }
         } else if (practiceMode && attempts + 1 >= MAX_ATTEMPTS) {
             sileo.error({
                 title: '¡Perdiste!',
@@ -287,6 +319,24 @@ const getMatchClass = (matches: boolean) =>
                 <p className="challenge-description">{challenge.description}</p>
             )}
 
+            <div className="hints-panel">
+                <div>
+                    <strong>Pistas utilizadas: {hintsUsed}</strong>
+                    {targetCharacter.hints.slice(0, hintsUsed).map((hint) => (
+                        <p key={hint.id}>{hint.text}</p>
+                    ))}
+                </div>
+                <button
+                    type="button"
+                    onClick={revealHint}
+                    disabled={won || attempts >= MAX_ATTEMPTS || hintsUsed >= targetCharacter.hints.length}
+                >
+                    {hintsUsed < targetCharacter.hints.length
+                        ? 'Revelar pista'
+                        : 'No hay más pistas'}
+                </button>
+            </div>
+
             <form onSubmit={submitGuess}>
                 <label htmlFor="character-guess">Ingresá un personaje</label>
                 <input
@@ -358,6 +408,13 @@ const getMatchClass = (matches: boolean) =>
             {won && (
                 <div className="game-result" role="status">
                     <h2>¡Adivinaste el personaje!</h2>
+                    <p>
+                        {scoreLoading
+                            ? 'Calculando puntaje...'
+                            : finalScore !== null
+                                ? `Puntaje obtenido: ${finalScore}`
+                                : 'No se pudo calcular el puntaje.'}
+                    </p>
                     {practiceMode && (
                         <button type="button" onClick={startNextPractice}>
                             Siguiente personaje

@@ -16,3 +16,13 @@ export interface ScoreInput {
 }
 
 export type ScoreUpdateInput = Omit<ScoreInput, 'difficultyId'>;
+
+export interface ScoreCalculationInput {
+    attemptsUsed: number;
+    hintsUsed: number;
+    won: boolean;
+}
+
+export interface ScoreCalculationResult {
+    score: number;
+}
