@@ -28,21 +28,21 @@ func (service *Service) Get(id uint) (Score, error) {
 	return score, nil
 }
 
-func (service *Service) GetByLevelID(levelID uint) (Score, error) {
-	if levelID == 0 {
-		return Score{}, fmt.Errorf("el nivel es obligatorio")
+func (service *Service) GetByDifficultyID(difficultyID uint) (Score, error) {
+	if difficultyID == 0 {
+		return Score{}, fmt.Errorf("la dificultad es obligatoria")
 	}
 
-	score, err := service.repository.FindByLevelID(levelID)
+	score, err := service.repository.FindByDifficultyID(difficultyID)
 	if err != nil {
-		return Score{}, fmt.Errorf("error al obtener el puntaje del nivel: %w", err)
+		return Score{}, fmt.Errorf("error al obtener el puntaje de la dificultad: %w", err)
 	}
 	return score, nil
 }
 
 func (service *Service) Create(score Score) (Score, error) {
-	if score.LevelID == 0 {
-		return Score{}, fmt.Errorf("el nivel es obligatorio")
+	if score.DifficultyID == 0 {
+		return Score{}, fmt.Errorf("la dificultad es obligatoria")
 	}
 	if err := validateValues(score); err != nil {
 		return Score{}, err
@@ -51,7 +51,7 @@ func (service *Service) Create(score Score) (Score, error) {
 	created, err := service.repository.Create(score)
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return Score{}, fmt.Errorf("ya existe una configuración de puntaje para este nivel")
+			return Score{}, fmt.Errorf("ya existe una configuración de puntaje para esta dificultad")
 		}
 		return Score{}, err
 	}
@@ -71,7 +71,7 @@ func (service *Service) Update(id uint, score Score) (Score, error) {
 	updated, err := service.repository.Update(id, score)
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return Score{}, fmt.Errorf("ya existe una configuración de puntaje para este nivel")
+			return Score{}, fmt.Errorf("ya existe una configuración de puntaje para esta dificultad")
 		}
 		return Score{}, fmt.Errorf("error al actualizar el puntaje: %w", err)
 	}

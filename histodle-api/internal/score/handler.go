@@ -52,20 +52,20 @@ func (handler *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(score)
 }
 
-func (handler *Handler) GetByLevelID(w http.ResponseWriter, r *http.Request) {
-	levelID, err := strconv.ParseUint(chi.URLParam(r, "levelId"), 10, 64)
+func (handler *Handler) GetByDifficultyID(w http.ResponseWriter, r *http.Request) {
+	difficultyID, err := strconv.ParseUint(chi.URLParam(r, "difficultyId"), 10, 64)
 	if err != nil {
-		http.Error(w, "ID de nivel inválido", http.StatusBadRequest)
+		http.Error(w, "ID de dificultad inválido", http.StatusBadRequest)
 		return
 	}
 
-	score, err := handler.service.GetByLevelID(uint(levelID))
+	score, err := handler.service.GetByDifficultyID(uint(difficultyID))
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		http.Error(w, "Puntaje del nivel no encontrado", http.StatusNotFound)
+		http.Error(w, "Puntaje de la dificultad no encontrado", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		http.Error(w, "Error al obtener el puntaje del nivel", http.StatusInternalServerError)
+		http.Error(w, "Error al obtener el puntaje de la dificultad", http.StatusInternalServerError)
 		return
 	}
 

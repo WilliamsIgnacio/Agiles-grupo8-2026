@@ -81,7 +81,7 @@ func New(db *gorm.DB) http.Handler {
 
 	r.Get("/scores", scoreHandler.List)
 	r.Get("/scores/{id}", scoreHandler.Get)
-	r.Get("/scores/level/{levelId}", scoreHandler.GetByLevelID)
+	r.Get("/scores/difficulty/{difficultyId}", scoreHandler.GetByDifficultyID)
 	r.Post("/scores", scoreHandler.Create)
 	r.Put("/scores/{id}", scoreHandler.Update)
 	r.Delete("/scores/{id}", scoreHandler.Delete)

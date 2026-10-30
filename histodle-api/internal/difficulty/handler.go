@@ -94,7 +94,7 @@ func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if errors.Is(err, ErrDifficultyInUse) {
-		http.Error(w, "No se puede eliminar la dificultad porque está asignada a personajes", http.StatusConflict)
+		http.Error(w, "No se puede eliminar la dificultad porque está asignada a personajes o tiene una configuración de puntaje", http.StatusConflict)
 		return
 	}
 	if err != nil {

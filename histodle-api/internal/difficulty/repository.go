@@ -58,7 +58,13 @@ func (repository *Repository) Delete(id uint) error {
 		Count(&assignedCharacters).Error; err != nil {
 		return err
 	}
-	if assignedCharacters > 0 {
+	var configuredScores int64
+	if err := repository.db.Table("scores").
+		Where("difficulty_id = ?", difficulty.ID).
+		Count(&configuredScores).Error; err != nil {
+		return err
+	}
+	if assignedCharacters > 0 || configuredScores > 0 {
 		return ErrDifficultyInUse
 	}
 
