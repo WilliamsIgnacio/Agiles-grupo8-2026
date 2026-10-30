@@ -59,6 +59,30 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, created)
 }
 
+func (handler *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(r)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+	var challenge Challenge
+	if err := json.NewDecoder(r.Body).Decode(&challenge); err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+	challenge.ID = id
+	updated, err := handler.service.Update(challenge)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		http.Error(w, "Desafío no encontrado", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusOK, updated)
+}
+
 func parseID(r *http.Request) (uint, error) {
 	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 	return uint(id), err

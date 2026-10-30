@@ -6,6 +6,7 @@ import type { Character, CharacterInput } from '../../types/character';
 import CharacterForm from '../../components/CharacterForm/CharacterForm';
 import CharactersTable from '../../components/CharactersTable/CharactersTable';
 import ChallengesForm from '../../components/ChallengesForm/ChallengesForm';
+import ChallengesTable from '../../components/ChallengesTable/ChallengesTable';
 import './Admin.css';
 import { sileo } from 'sileo';
 
@@ -106,6 +107,8 @@ export const ChallengesFormOutlet: React.FC = () => {
     const { characters } = useOutletContext<AdminOutletContext>();
     return <ChallengesForm characters={characters} />;
 };
+
+export const ChallengesTableOutlet: React.FC = () => <ChallengesTable />;
 
 export const CharacterFormOutlet: React.FC = () => {
     const { characters, occupations, difficulties } = useOutletContext<AdminOutletContext>();

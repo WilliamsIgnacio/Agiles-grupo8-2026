@@ -1,3 +1,9 @@
+.challenge-admin-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
 .challenge-admin-section {
     max-width: 720px;
     margin: 0 auto;
@@ -68,4 +74,68 @@
 .btn-create-challenge:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.btn-cancel-challenge {
+    margin-top: 1rem;
+    border: 1px solid #554963;
+    border-radius: 20px;
+    padding: 0.65rem 1.25rem;
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.btn-cancel-challenge:hover {
+    border-color: #b632df;
+}
+
+.challenge-list-status {
+    color: #8b8595;
+}
+
+.challenge-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.challenge-card {
+    padding: 1.25rem;
+    background: #120c1a;
+    border: 1px solid #281f36;
+    border-radius: 16px;
+}
+
+.challenge-card-header,
+.challenge-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.challenge-card-header h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.1rem;
+}
+
+.challenge-card-id,
+.challenge-card-meta {
+    color: #8b8595;
+    font-size: 0.85rem;
+}
+
+.challenge-card-description {
+    margin: 0.8rem 0;
+    color: #d1cbd9;
+}
+
+@media (max-width: 600px) {
+    .challenge-card-header,
+    .challenge-card-meta {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
