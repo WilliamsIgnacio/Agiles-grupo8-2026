@@ -3,10 +3,12 @@ import { NavLink, Outlet, useLocation, useNavigate, useOutletContext, useParams 
 import type { Occupation } from '../../types/occupations';
 import type { Difficulty } from '../../types/difficulty';
 import type { Character, CharacterInput } from '../../types/character';
+import type { Score } from '../../types/score';
 import CharacterForm from '../../components/CharacterForm/CharacterForm';
 import CharactersTable from '../../components/CharactersTable/CharactersTable';
 import ChallengesForm from '../../components/ChallengesForm/ChallengesForm';
 import ChallengesTable from '../../components/ChallengesTable/ChallengesTable';
+import ScoresTable from '../../components/ScoresTable/ScoresTable';
 import './Admin.css';
 import { sileo } from 'sileo';
 
@@ -15,11 +17,14 @@ import { createCharacter, deleteCharacter as deleteCharacterRequest, getCharacte
 import { getOccupations } from '../../services/occupations';
 import { getDifficulties } from '../../services/difficulties';
 import { getChallenges } from '../../services/challenges';
+import { getScores } from '../../services/scores';
 
 interface AdminOutletContext {
     characters: Character[];
     occupations: Occupation[];
     difficulties: Difficulty[];
+    scores: Score[];
+    setScores: React.Dispatch<React.SetStateAction<Score[]>>;
     removeCharacter: (id: number) => Promise<void>;
 }
 
@@ -28,6 +33,7 @@ const AdminLayout: React.FC = () => {
         const [occupationsCount, setOccupationsCount] = useState(0);
         const [occupations, setOccupations] = useState<Occupation[]>([]);
         const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
+        const [scores, setScores] = useState<Score[]>([]);
         const [difficultiesCount, setDifficultiesCount] = useState(0);
         const [challengesCount, setChallengesCount] = useState(0);
         const [loading, setLoading] = useState(true);
@@ -35,14 +41,15 @@ const AdminLayout: React.FC = () => {
         const location = useLocation();
 
     useEffect(() => {
-        Promise.all([getCharacters(), getOccupations(), getDifficulties(), getChallenges()])
-        .then(([loadedCharacters, loadedOccupations, loadedDifficulties, loadedChallenges]) => {
+        Promise.all([getCharacters(), getOccupations(), getDifficulties(), getChallenges(), getScores()])
+        .then(([loadedCharacters, loadedOccupations, loadedDifficulties, loadedChallenges, loadedScores]) => {
             setCharacters(loadedCharacters);
             setOccupationsCount(loadedOccupations.length);
             setOccupations(loadedOccupations);
             setDifficultiesCount(loadedDifficulties.length);
             setDifficulties(loadedDifficulties);
             setChallengesCount(loadedChallenges.length);
+            setScores(loadedScores);
         })
         .catch((reason: unknown) => {
             setError(reason instanceof Error ? reason.message : 'Error al cargar los datos');
@@ -94,10 +101,17 @@ const AdminLayout: React.FC = () => {
                 >
                 Desafíos ({challengesCount})
                 </NavLink>
+
+                <NavLink
+                to="/admin/scores"
+                className={({ isActive }) => `tab-button ${isActive ? 'active' : ''}`}
+                >
+                Configuración de puntajes ({scores.length})
+                </NavLink>
             </div>
 
             <div className="admin-content">
-                <Outlet context={{ characters, occupations, difficulties, removeCharacter }} />
+                <Outlet context={{ characters, occupations, difficulties, scores, setScores, removeCharacter }} />
             </div>
         </section>
     );
@@ -186,6 +200,18 @@ export const CharactersTableOutlet: React.FC = () => {
             onSelectCharacter={() => {}}
             onEdit={() => {}}
             onDelete={(character) => removeCharacter(character.id)}
+        />
+    );
+};
+
+export const ScoresTableOutlet: React.FC = () => {
+    const { difficulties, scores, setScores } = useOutletContext<AdminOutletContext>();
+
+    return (
+        <ScoresTable
+            difficulties={difficulties}
+            scores={scores}
+            onScoresChange={setScores}
         />
     );
 };
