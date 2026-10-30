@@ -44,23 +44,8 @@ func (service *Service) Create(score Score) (Score, error) {
 	if score.LevelID == 0 {
 		return Score{}, fmt.Errorf("el nivel es obligatorio")
 	}
-
-	if score.MinScore > score.MaxScore {
-		return Score{}, fmt.Errorf("el puntaje mínimo no puede superar al puntaje máximo")
-	}
-
-	if math.IsNaN(score.AttemptPenaltyPercentage) ||
-		math.IsInf(score.AttemptPenaltyPercentage, 0) ||
-		score.AttemptPenaltyPercentage < 0 ||
-		score.AttemptPenaltyPercentage > 100 {
-		return Score{}, fmt.Errorf("el porcentaje de resta por intento debe estar entre 0 y 100")
-	}
-
-	if math.IsNaN(score.HintPenaltyPercentage) ||
-		math.IsInf(score.HintPenaltyPercentage, 0) ||
-		score.HintPenaltyPercentage < 0 ||
-		score.HintPenaltyPercentage > 100 {
-		return Score{}, fmt.Errorf("el porcentaje de resta por pista debe estar entre 0 y 100")
+	if err := validateValues(score); err != nil {
+		return Score{}, err
 	}
 
 	created, err := service.repository.Create(score)
@@ -72,4 +57,44 @@ func (service *Service) Create(score Score) (Score, error) {
 	}
 
 	return created, nil
+}
+
+func (service *Service) Update(id uint, score Score) (Score, error) {
+	if id == 0 {
+		return Score{}, fmt.Errorf("el ID del puntaje es obligatorio")
+	}
+
+	if err := validateValues(score); err != nil {
+		return Score{}, err
+	}
+
+	updated, err := service.repository.Update(id, score)
+	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return Score{}, fmt.Errorf("ya existe una configuración de puntaje para este nivel")
+		}
+		return Score{}, fmt.Errorf("error al actualizar el puntaje: %w", err)
+	}
+	return updated, nil
+}
+
+func validateValues(score Score) error {
+	if score.MinScore > score.MaxScore {
+		return fmt.Errorf("el puntaje mínimo no puede superar al puntaje máximo")
+	}
+
+	if math.IsNaN(score.AttemptPenaltyPercentage) ||
+		math.IsInf(score.AttemptPenaltyPercentage, 0) ||
+		score.AttemptPenaltyPercentage < 0 ||
+		score.AttemptPenaltyPercentage > 100 {
+		return fmt.Errorf("el porcentaje de resta por intento debe estar entre 0 y 100")
+	}
+
+	if math.IsNaN(score.HintPenaltyPercentage) ||
+		math.IsInf(score.HintPenaltyPercentage, 0) ||
+		score.HintPenaltyPercentage < 0 ||
+		score.HintPenaltyPercentage > 100 {
+		return fmt.Errorf("el porcentaje de resta por pista debe estar entre 0 y 100")
+	}
+	return nil
 }

@@ -32,3 +32,26 @@ func (repository *Repository) FindByLevelID(levelID uint) (Score, error) {
 	err := repository.db.Where("level_id = ?", levelID).First(&score).Error
 	return score, err
 }
+
+func (repository *Repository) Update(id uint, score Score) (Score, error) {
+	var existing Score
+	if err := repository.db.First(&existing, id).Error; err != nil {
+		return Score{}, err
+	}
+
+	err := repository.db.Model(&existing).Updates(map[string]any{
+		"max_score":                  score.MaxScore,
+		"min_score":                  score.MinScore,
+		"attempt_penalty_percentage": score.AttemptPenaltyPercentage,
+		"hint_penalty_percentage":    score.HintPenaltyPercentage,
+	}).Error
+	if err != nil {
+		return Score{}, err
+	}
+
+	existing.MaxScore = score.MaxScore
+	existing.MinScore = score.MinScore
+	existing.AttemptPenaltyPercentage = score.AttemptPenaltyPercentage
+	existing.HintPenaltyPercentage = score.HintPenaltyPercentage
+	return existing, nil
+}
