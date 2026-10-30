@@ -1,0 +1,71 @@
+.challenge-admin-section {
+    max-width: 720px;
+    margin: 0 auto;
+    color: #ffffff;
+}
+
+.challenge-admin-section h2 {
+    margin: 0 0 0.5rem;
+}
+
+.challenge-admin-description {
+    margin: 0 0 1.5rem;
+    color: #8b8595;
+}
+
+.challenge-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.challenge-create-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.challenge-create-form label {
+    font-weight: 600;
+}
+
+.challenge-create-form input,
+.challenge-create-form textarea,
+.challenge-create-form select {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #2d243a;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    background: #1a1423;
+    color: #ffffff;
+    font: inherit;
+}
+
+.challenge-create-form textarea {
+    resize: vertical;
+}
+
+.challenge-create-form input:focus,
+.challenge-create-form textarea:focus,
+.challenge-create-form select:focus {
+    outline: 2px solid rgba(168, 85, 247, 0.55);
+    outline-offset: 1px;
+}
+
+.btn-create-challenge {
+    align-self: flex-start;
+    border: 0;
+    border-radius: 20px;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #a855f7, #8b5cf6);
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-create-challenge:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
