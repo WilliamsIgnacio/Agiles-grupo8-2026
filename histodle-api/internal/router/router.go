@@ -79,6 +79,9 @@ func New(db *gorm.DB) http.Handler {
 	scoreService := score.NewService(scoreRepository)
 	scoreHandler := score.NewHandler(scoreService)
 
+	r.Get("/scores", scoreHandler.List)
+	r.Get("/scores/{id}", scoreHandler.Get)
+	r.Get("/scores/level/{levelId}", scoreHandler.GetByLevelID)
 	r.Post("/scores", scoreHandler.Create)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {

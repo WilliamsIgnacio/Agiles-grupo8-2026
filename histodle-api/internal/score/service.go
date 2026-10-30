@@ -16,6 +16,30 @@ func NewService(repository *Repository) *Service {
 	return &Service{repository: repository}
 }
 
+func (service *Service) List() ([]Score, error) {
+	return service.repository.FindAll()
+}
+
+func (service *Service) Get(id uint) (Score, error) {
+	score, err := service.repository.FindByID(id)
+	if err != nil {
+		return Score{}, fmt.Errorf("error al obtener el puntaje: %w", err)
+	}
+	return score, nil
+}
+
+func (service *Service) GetByLevelID(levelID uint) (Score, error) {
+	if levelID == 0 {
+		return Score{}, fmt.Errorf("el nivel es obligatorio")
+	}
+
+	score, err := service.repository.FindByLevelID(levelID)
+	if err != nil {
+		return Score{}, fmt.Errorf("error al obtener el puntaje del nivel: %w", err)
+	}
+	return score, nil
+}
+
 func (service *Service) Create(score Score) (Score, error) {
 	if score.LevelID == 0 {
 		return Score{}, fmt.Errorf("el nivel es obligatorio")
