@@ -1,4 +1,10 @@
-import type { Score, ScoreInput, ScoreUpdateInput } from '../types/score';
+import type {
+    Score,
+    ScoreCalculationInput,
+    ScoreCalculationResult,
+    ScoreInput,
+    ScoreUpdateInput,
+} from '../types/score';
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/scores`;
 
@@ -43,4 +49,22 @@ export const deleteScore = async (id: number): Promise<void> => {
     if (!response.ok) {
         return parseError(response, 'eliminar la configuración de puntaje');
     }
+};
+
+export const calculateScore = async (
+    difficultyId: number,
+    input: ScoreCalculationInput,
+): Promise<ScoreCalculationResult> => {
+    const response = await fetch(
+        `${API_BASE_URL}/difficulty/${difficultyId}/calculate`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(input),
+        },
+    );
+    if (!response.ok) {
+        return parseError(response, 'calcular el puntaje');
+    }
+    return response.json();
 };
