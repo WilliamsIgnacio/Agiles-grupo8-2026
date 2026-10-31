@@ -243,7 +243,7 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         handleAttempt();
         setGuesses((currentGuesses) => [guess, ...currentGuesses]);
         setGuessName('');
-        if (practiceMode && guess.id === targetCharacter?.id) {
+        if (guess.id === targetCharacter?.id) {
             sileo.success({
                 title: '¡Adivinaste el personaje!',
                 description: `La respuesta era ${targetCharacter.name}.`,
