@@ -327,40 +327,6 @@ main > section:has(> form) > table tbody td.guess-value.mismatch::before {
     color: rgba(239, 230, 246, 0.62);
 }
 
-main > section:has(> form) > table tbody td.occupation-cell {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    justify-content: flex-start;
-    gap: 0.5rem;
-    background: #302c36;
-}
-
-main > section:has(> form) > table tbody td.occupation-cell::before {
-    width: 100%;
-    flex-basis: 100%;
-    color: rgba(239, 230, 246, 0.62);
-}
-
-main > section:has(> form) > table tbody td.occupation-cell .guess-value {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2rem;
-    padding: 0.35rem 0.65rem;
-    border-radius: 999px;
-    font-size: 0.82rem;
-}
-
-main > section:has(> form) > table tbody td.occupation-cell .guess-value.match {
-    background: #20c995;
-    color: #17131c;
-}
-
-main > section:has(> form) > table tbody td.occupation-cell .guess-value.mismatch {
-    background: #45414b;
-    color: #e5dfeb;
-}
-
 @media (max-width: 700px) {
     main > section:has(> form) > table {
         padding: 0.75rem;
@@ -541,40 +507,6 @@ main > section:has(> form) > table tbody td.occupation-cell .guess-value.mismatc
 
 .game-result button:hover {
     background: #c03be0;
-}
-
-.hints-panel {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin: 0 0 1.25rem;
-    padding: 1rem;
-    border: 1px solid rgba(190, 135, 224, 0.3);
-    border-radius: 1rem;
-    background: #19151f;
-}
-
-.hints-panel p {
-    margin: 0.65rem 0 0;
-    color: #cbd5e1;
-}
-
-.hints-panel button {
-    min-height: 2.8rem;
-    padding: 0.65rem 1rem;
-    border: 0;
-    border-radius: 0.8rem;
-    background: #ae2bd0;
-    color: #fff;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.hints-panel button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
 }
 
 .attempts-text {
@@ -791,7 +723,6 @@ main > section:has(> form) > table tbody td.occupation-cell .guess-value.mismatc
 }
 
 
-/* Barra de búsqueda */
 .level-page form input#character-guess {
     width: 100%;
     height: 74px;
@@ -815,18 +746,15 @@ main > section:has(> form) > table tbody td.occupation-cell .guess-value.mismatc
                 box-shadow 0.2s ease;
 }
 
-/* Cuando el usuario selecciona el input */
 .level-page form input#character-guess:focus {
     border-color: #d946ef;
     box-shadow: 0 0 12px rgba(192, 38, 232, 0.15);
 }
 
-/* Placeholder */
 .level-page form input#character-guess::placeholder {
     color: #88818e;
 }
 
-/* Deshabilitado */
 .level-page form input#character-guess:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -899,65 +827,62 @@ main > section:has(> form) > table tbody td.occupation-cell .guess-value.mismatc
     color: #aaa;
 }
 
-/* Agrupador de acciones del formulario */
 .guess-form-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* Botón Circular de Pista con Lamparita */
 .hint-circle-button {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: none;
-  background-color: #f59e0b;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background-color: #f2ca3b;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    flex-shrink: 0;
 }
 
 .hint-circle-button:hover:not(:disabled) {
-  background-color: #d97706;
-  transform: scale(1.05);
+    background-color: #989898;
+    transform: scale(1.05);
 }
 
 .hint-circle-button:disabled {
-  background-color: #374151;
-  color: #6b7280;
-  cursor: not-allowed;
-  opacity: 0.5;
+    background-color: #374151;
+    color: #6b7280;
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
-/* Sección de Pistas Reveladas en la columna de intentos */
 .revealed-hints-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 1rem;
 }
 
 .hints-title {
-  color: #f59e0b;
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin: 0;
+    color: #f59e0b;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
 }
 
 .hint-card {
-  background-color: #1a1226;
-  border: 1px solid #f59e0b;
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  color: #f3f4f6;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+    background-color: #1a1226;
+    border: 1px solid #f59e0b;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    color: #f3f4f6;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
