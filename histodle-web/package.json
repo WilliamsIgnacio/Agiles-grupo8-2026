@@ -14,7 +14,8 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4",
-    "sileo": "^0.1.6"
+    "sileo": "^0.1.6",
+    "animate.css": "^4.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

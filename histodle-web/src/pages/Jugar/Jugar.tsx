@@ -68,26 +68,28 @@ const Jugar: React.FC = () => {
                 </div>
             </div>
 
-                <div className="category-selector">
-                    <label htmlFor="game-category">Categoría de personajes (modo práctica)</label>
-                    <CategoryWheelPicker
-                        categories={categories}
-                        selectedCategoryId={selectedCategoryId}
-                        onCategoryChange={setSelectedCategoryId}
-                        disabled={categoriesLoading}
-                    />
-                </div>
+                <div className="category-selectors">
+                    <div className="category-selector">
+                        <label htmlFor="game-category">Categoría de personajes (modo práctica)</label>
+                        <CategoryWheelPicker
+                            categories={categories}
+                            selectedCategoryId={selectedCategoryId}
+                            onCategoryChange={setSelectedCategoryId}
+                            disabled={categoriesLoading}
+                        />
+                    </div>
 
-                <div className="category-selector">
-                    <label htmlFor="game-difficulty">Dificultad del personaje misterioso</label>
-                    <CategoryWheelPicker
-                        categories={difficulties}
-                        selectedCategoryId={selectedDifficultyId}
-                        onCategoryChange={setSelectedDifficultyId}
-                        disabled={categoriesLoading}
-                        allOptionId="default"
-                        allOptionLabel="Por defecto"
-                    />
+                    <div className="category-selector">
+                        <label htmlFor="game-difficulty">Dificultad del personaje misterioso</label>
+                        <CategoryWheelPicker
+                            categories={difficulties}
+                            selectedCategoryId={selectedDifficultyId}
+                            onCategoryChange={setSelectedDifficultyId}
+                            disabled={categoriesLoading}
+                            allOptionId="default"
+                            allOptionLabel="Por defecto"
+                        />
+                    </div>
                 </div>
 
                 {categoriesLoading && <p role="status">Cargando opciones de práctica...</p>}

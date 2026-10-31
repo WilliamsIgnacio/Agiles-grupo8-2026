@@ -24,6 +24,21 @@ const CharactersTable: React.FC<CharactersTableProps> = ({
     const [searchTerm, setSearchTerm] = useState('');
     const [actionError, setActionError] = useState<string | null>(null);
 
+    const normalizeSearchText = (value: string) =>
+        value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+    const normalizedSearchTerm = normalizeSearchText(searchTerm.trim());
+    const filteredCharacters = characters.filter((character) => {
+        const searchableText = [
+            character.name,
+            character.country,
+            character.birthYear.toString(),
+            character.yearOfDeath.toString(),
+            ...(character.occupations ?? []).map((occupation) => occupation.name),
+        ].join(' ');
+
+        return normalizeSearchText(searchableText).includes(normalizedSearchTerm);
+    });
+
     const handleSelect = (character: Character) => {
         setSelectedCharacter(character);
         if (onSelectCharacter) {
@@ -91,6 +106,7 @@ const CharactersTable: React.FC<CharactersTableProps> = ({
                 type="text"
                 className="search-input"
                 placeholder="Buscar personaje..."
+                aria-label="Buscar personaje por nombre, país, años u ocupación"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -107,7 +123,7 @@ const CharactersTable: React.FC<CharactersTableProps> = ({
         </div>
 
         <div className="characters-grid">
-            {characters.map((character) => (
+            {filteredCharacters.length > 0 ? filteredCharacters.map((character) => (
             <div key={character.id} className="character-card">
                 <div className="card-header">
                 <h3 className="character-name">{character.name}</h3>
@@ -157,7 +173,11 @@ const CharactersTable: React.FC<CharactersTableProps> = ({
                 Ver ficha
                 </button>
             </div>
-            ))}
+            )) : (
+                <p className="empty-search-results" role="status">
+                    No se encontraron personajes para “{searchTerm}”.
+                </p>
+            )}
         </div>
         </div>
     );

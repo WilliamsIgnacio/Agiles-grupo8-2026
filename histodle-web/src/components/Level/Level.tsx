@@ -5,9 +5,10 @@ import { sileo } from 'sileo';
 import { getCharacters } from '../../services/character';
 import { getChallenge } from '../../services/challenges';
 import { calculateScore } from '../../services/scores';
-import type { Character } from '../../types/character';
+import type { Character, CharacterHint } from '../../types/character';
 import type { Challenge } from '../../types/challenge';
 import './Level.css';
+import 'animate.css'
 
 const MAX_ATTEMPTS = 10;
 
@@ -16,11 +17,31 @@ const normalizeName = (name: string) => name.trim().toLocaleLowerCase();
 const getMatchClass = (matches: boolean) =>
     matches ? 'guess-value match' : 'guess-value mismatch';
 
+const getYearHint = (guessYear: number, targetYear: number) => {
+    const difference = targetYear - guessYear;
+    const arrow = difference > 0 ? '↑' : difference < 0 ? '↓' : '';
+
+    return {
+        className:
+            difference === 0
+                ? 'match'
+                : Math.abs(difference) < 50
+                    ? 'close'
+                    : 'mismatch',
+        arrow,
+        arrowLabel:
+            difference > 0
+                ? 'El personaje misterioso es más reciente'
+                : 'El personaje misterioso es más viejo',
+    };
+};
+
     interface LevelProps {
         practiceMode?: boolean;
     }
 
-    const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
+const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
+
     const { challengeId: challengeParam } = useParams<{ challengeId: string }>();
     const [searchParams] = useSearchParams();
 
@@ -35,13 +56,16 @@ const getMatchClass = (matches: boolean) =>
         practiceMode &&
         categoryParam !== 'all' &&
         (!Number.isSafeInteger(categoryId) || categoryId <= 0);
+        
     const invalidDifficulty =
         practiceMode &&
         difficultyParam !== 'default' &&
         (!Number.isSafeInteger(difficultyId) || difficultyId <= 0);
+    
     const invalidChallenge =
         !practiceMode &&
         (!Number.isSafeInteger(challengeId) || challengeId <= 0);
+    
     const loading = loadedRequestKey !== requestKey;
 
     const [characters, setCharacters] = useState<Character[]>([]);
@@ -53,9 +77,11 @@ const getMatchClass = (matches: boolean) =>
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState('');
     const [attempts, setAttempts] = useState(0);
-    const [hintsUsed, setHintsUsed] = useState(0);
+    const [revealedHints, setRevealedHints] = useState<CharacterHint[]>([]);
+    const hintsUsed = revealedHints.length;
     const [finalScore, setFinalScore] = useState<number | null>(null);
     const [scoreLoading, setScoreLoading] = useState(false);
+    const [ showSuggestions, setShowSuggestions ] = useState(false);
 
     const startNextPractice = () => {
         const nextCharacters = targetCandidates.filter(
@@ -71,7 +97,7 @@ const getMatchClass = (matches: boolean) =>
         setGuessName('');
         setMessage('');
         setAttempts(0);
-        setHintsUsed(0);
+        setRevealedHints([]);
         setFinalScore(null);
         setScoreLoading(false);
     };
@@ -114,7 +140,7 @@ const getMatchClass = (matches: boolean) =>
             setGuessName('');
             setMessage('');
             setAttempts(0);
-            setHintsUsed(0);
+            setRevealedHints([]);
             setFinalScore(null);
             setScoreLoading(false);
             setCharacters(eligibleCharacters);
@@ -180,8 +206,18 @@ const getMatchClass = (matches: boolean) =>
     };
 
     const revealHint = () => {
-        if (!targetCharacter || hintsUsed >= targetCharacter.hints.length || won) return;
-        setHintsUsed((currentHints) => currentHints + 1);
+        if (!targetCharacter || won) return;
+
+        setRevealedHints((currentHints) => {
+            const availableHints = targetCharacter.hints.filter(
+                (hint) =>
+                    !currentHints.some((revealedHint) => revealedHint.id === hint.id),
+            );
+            if (availableHints.length === 0) return currentHints;
+
+            const randomIndex = Math.floor(Math.random() * availableHints.length);
+            return [...currentHints, availableHints[randomIndex]];
+        });
     };
 
     const submitGuess = async (event: SubmitEvent<HTMLFormElement>) => {
@@ -200,16 +236,14 @@ const getMatchClass = (matches: boolean) =>
         }
 
         if (guesses.some((previousGuess) => previousGuess.id === guess.id)) {
-            setMessage('Ya probaste ese personaje.');
+            sileo.warning ({ title: 'Ya probaste ese personaje.'})
             return;
         }
 
         handleAttempt();
         setGuesses((currentGuesses) => [guess, ...currentGuesses]);
         setGuessName('');
-        setMessage('Intento agregado.');
         if (guess.id === targetCharacter?.id) {
-            setScoreLoading(true);
             sileo.success({
                 title: '¡Adivinaste el personaje!',
                 description: `La respuesta era ${targetCharacter.name}.`,
@@ -290,18 +324,10 @@ const getMatchClass = (matches: boolean) =>
                 <h1>{practiceMode ? 'Modo práctica' : challenge?.name}</h1>
                 <div className='attempts-container'>
                     <p className='attempts-text'>
-                        {practiceMode ? (
-                            <>
-                                <strong className='attempts-count'>{attempts}</strong> intentos
-                            </>
-                        ) : (
-                            <>
-                                <strong className='attempts-count'>{MAX_ATTEMPTS - attempts}</strong> intentos restantes
-                            </>
-                        )}
+                        <strong className='attempts-count'>{MAX_ATTEMPTS - attempts}</strong> intentos restantes
                     </p>
 
-                    {!practiceMode && <div className='attempts-bar'>
+                    <div className='attempts-bar'>
                         {Array.from({ length: MAX_ATTEMPTS }).map((_, index) => {
                             const isUsed = index < attempts;
                             return (
@@ -311,57 +337,100 @@ const getMatchClass = (matches: boolean) =>
                                 />
                             )
                         })}
-
-                    </div>}
+                    </div>
                 </div>
             </header>
             {!practiceMode && challenge?.description && (
                 <p className="challenge-description">{challenge.description}</p>
             )}
 
-            <div className="hints-panel">
-                <div>
-                    <strong>Pistas utilizadas: {hintsUsed}</strong>
-                    {targetCharacter.hints.slice(0, hintsUsed).map((hint) => (
-                        <p key={hint.id}>{hint.text}</p>
-                    ))}
-                </div>
-                <button
-                    type="button"
-                    onClick={revealHint}
-                    disabled={won || attempts >= MAX_ATTEMPTS || hintsUsed >= targetCharacter.hints.length}
-                >
-                    {hintsUsed < targetCharacter.hints.length
-                        ? 'Revelar pista'
-                        : 'No hay más pistas'}
-                </button>
-            </div>
+            <form onSubmit={submitGuess} className="guess-form">
+                <div className="search-container">
+                    <input
+                        id="character-guess"
+                        value={guessName}
+                        onChange={(event) => {
+                            setGuessName(event.target.value);
+                            setShowSuggestions(true);
+                        }}
+                        onFocus={() => setShowSuggestions(true)}
+                        autoComplete="off"
+                        disabled={won || attempts >= MAX_ATTEMPTS}
+                        placeholder="Buscar personaje..."
+                    />
 
-            <form onSubmit={submitGuess}>
-                <label htmlFor="character-guess">Ingresá un personaje</label>
-                <input
-                    id="character-guess"
-                    list="characters-list"
-                    value={guessName}
-                    onChange={(event) => setGuessName(event.target.value)}
-                    autoComplete="off"
-                    disabled={won || attempts >= MAX_ATTEMPTS}
-                />
-                <datalist id="characters-list">
-                {characters.map((character) => (
-                    <option key={character.id} value={character.name} />
-                ))}
-                </datalist>
-                <button
-                    type="submit"
-                    disabled={
-                        won ||
-                        attempts >= MAX_ATTEMPTS ||
-                        guessName.trim() === ''
-                    }
-                >
-                    Probar
-                </button>
+                    {showSuggestions && guessName.trim() !== '' && (
+                        <div className="suggestions-dropdown">
+                            {characters
+                                .filter((character) =>
+                                    normalizeName(character.name).includes(
+                                        normalizeName(guessName)
+                                    )
+                                )
+                                .slice(0, 4)
+                                .map((character) => (
+                                    <button
+                                        key={character.id}
+                                        type="button"
+                                        className="suggestion-item"
+                                        onMouseDown={(event) => event.preventDefault()}
+                                        onClick={() => {
+                                            setGuessName(character.name);
+                                            setShowSuggestions(false);
+                                        }}
+                                    >
+                                        <span className="suggestion-name">
+                                            {character.name}
+                                        </span>
+
+                                        <span className="suggestion-years">
+                                            {character.birthYear} – {
+                                                character.yearOfDeath === 0
+                                                    ? 'Actualidad'
+                                                    : character.yearOfDeath
+                                            }
+                                        </span>
+                                    </button>
+                                ))}
+
+                            {characters.filter((character) =>
+                                normalizeName(character.name).includes(
+                                    normalizeName(guessName)
+                                )
+                            ).length === 0 && (
+                                <p className="no-suggestions">
+                                    No se encontraron personajes.
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                <div className="guess-form-actions">
+                    <button
+                        type="submit"
+                        disabled={
+                            won ||
+                            attempts >= MAX_ATTEMPTS ||
+                            guessName.trim() === ''
+                        }
+                    >
+                        Probar
+                    </button>
+
+                    <button
+                        type="button"
+                        className="hint-circle-button"
+                        onClick={revealHint}
+                        disabled={won || attempts >= MAX_ATTEMPTS || hintsUsed >= targetCharacter.hints.length}
+                        title={hintsUsed >= targetCharacter.hints.length ? 'No hay más pistas' : 'Obtener pista'}
+                        aria-label="Revelar pista"
+                    >
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7zm-3 18c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1z"/>
+                        </svg>
+                    </button>
+                </div>
             </form>
 
             <div className="legend-row">
@@ -416,7 +485,7 @@ const getMatchClass = (matches: boolean) =>
                                 : 'No se pudo calcular el puntaje.'}
                     </p>
                     {practiceMode && (
-                        <button type="button" onClick={startNextPractice}>
+                        <button className='button-play-again' type="button" onClick={startNextPractice}>
                             Siguiente personaje
                         </button>
                     )}
@@ -426,7 +495,7 @@ const getMatchClass = (matches: boolean) =>
             {practiceMode && !won && attempts >= MAX_ATTEMPTS && (
                 <div className="game-result" role="status">
                     <h2>¡Perdiste! Se acabaron los intentos.</h2>
-                    <button type="button" onClick={startNextPractice}>
+                    <button className='button-play-again' type="button" onClick={startNextPractice}>
                         Siguiente personaje
                     </button>
                 </div>
@@ -439,76 +508,156 @@ const getMatchClass = (matches: boolean) =>
                 </div>
             )}
 
-            {guesses.length > 0 && (
-                <table>
-                    <thead>
-                        <tr>
-                        <th>Personaje</th>
-                        <th>Género</th>
-                        <th>Período</th>
-                        <th>País</th>
-                        <th>Continente</th>
-                        <th>Conocido por</th>
-                        <th>Posición</th>
-                        <th>Nacimiento</th>
-                        <th>Fallecimiento</th>
-                        <th>Ocupaciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {guesses.map((guess) => (
-                            <tr key={guess.id}>
-                                <td>{guess.name}</td>
-                                <td className={getMatchClass(guess.gender === targetCharacter.gender)}>
-                                    {guess.gender}
-                                </td>
-                                <td className={getMatchClass(guess.period === targetCharacter.period)}>
-                                    {guess.period}
-                                </td>
-                                <td className={getMatchClass(guess.country === targetCharacter.country)}>
-                                    {guess.country}
-                                </td>
-                                <td className={getMatchClass(guess.continent === targetCharacter.continent)}>
-                                    {guess.continent}
-                                </td>
-                                <td className={getMatchClass(guess.knowFor === targetCharacter.knowFor)}>
-                                    {guess.knowFor}
-                                </td>
-                                <td className={getMatchClass(guess.position === targetCharacter.position)}>
-                                    {guess.position}
-                                </td>
-                                <td className={getMatchClass(guess.birthYear === targetCharacter.birthYear)}>
-                                    {guess.birthYear}
-                                </td>
-                                <td className={getMatchClass(guess.yearOfDeath === targetCharacter.yearOfDeath)}>
-                                    {guess.yearOfDeath}
-                                </td>
-                                <td className="occupation-cell">
-                                {guess.occupations.length > 0 ? (
-                                    guess.occupations.map((occupation) => {
-                                    const matches = targetCharacter.occupations.some(
-                                        (targetOccupation) =>
-                                        normalizeName(targetOccupation.name) ===
-                                        normalizeName(occupation.name),
-                                    );
+            {(guesses.length > 0 || revealedHints.length > 0) && (
+                <div className='game-layout'>
+                    <div className='attempts-column'>
+                        {revealedHints.length > 0 && (
+                            <div className="revealed-hints-container animate__animated animate__fadeIn">
+                                <h3 className="hints-title">Pistas reveladas:</h3>
+                                {revealedHints.map((hint) => (
+                                    <div key={hint.id} className="hint-card">
+                                        {hint.text}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
-                                    return (
-                                        <span
-                                        className={getMatchClass(matches)}
-                                        key={occupation.id}
-                                        >
-                                        {occupation.name}
-                                        </span>
-                                    );
-                                    })
-                                ) : (
-                                    <span className="guess-value mismatch">Sin ocupaciones</span>
-                                )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        {guesses.map((guess) => {
+                                const birthYearHint = getYearHint(guess.birthYear, targetCharacter.birthYear);
+                                const deathYearHint = getYearHint(guess.yearOfDeath, targetCharacter.yearOfDeath);
+
+                                const initials = guess.name
+                                    .split(' ')
+                                    .map((n) => n[0])
+                                    .join('')
+                                    .substring(0, 2)
+                                    .toUpperCase();
+
+                                const genderMatch = guess.gender === targetCharacter.gender;
+                                const periodMatch = guess.period === targetCharacter.period;
+                                const countryMatch = guess.country === targetCharacter.country;
+                                const continentMatch = guess.continent === targetCharacter.continent;
+                                const positionMatch = (guess.position || 'Ninguno') === (targetCharacter.position || 'Ninguno');
+
+                                return (
+                                    <div key={guess.id} className="attempt-card">
+                                        <div className="attempt-card-header">
+                                            <div className="avatar-circle">{initials}</div>
+                                            <div>
+                                                <h2 className="character-title">{guess.name}</h2>
+                                                <div className="occupations-pills">
+                                                    {guess.occupations.length > 0 ? (
+                                                    guess.occupations.map((occ) => {
+                                                        const occMatches = targetCharacter.occupations.some(
+                                                        (targetOcc) =>
+                                                            normalizeName(targetOcc.name) === normalizeName(occ.name)
+                                                        );
+                                                        return (
+                                                        <span
+                                                            key={occ.id}
+                                                            className={`occ-pill ${occMatches ? 'match' : 'mismatch'}`}
+                                                        >
+                                                            {occ.name}
+                                                        </span>
+                                                        );
+                                                    })
+                                                    ) : (
+                                                    <span className="occ-pill mismatch">Sin ocupaciones</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="attempt-fields-grid">
+
+                                            <div className={`field-box ${getMatchClass(genderMatch)} animate__animated animate__flipInX`}>
+                                                <span className="field-label">GÉNERO</span>
+                                                <div className="field-content">
+                                                    <span>{guess.gender}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className={`field-box ${getMatchClass(countryMatch)} animate__animated animate__flipInX`}>
+                                                <span className="field-label animate__animated animate__flipInX">PAÍS</span>
+                                                <div className="field-content">
+                                                    <span>{guess.country}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className={`field-box ${getMatchClass(continentMatch)} animate__animated animate__flipInX`}>
+                                                <span className="field-label">CONTINENTE</span>
+                                                <div className="field-content">
+                                                    <span>{guess.continent}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className={`field-box ${getMatchClass(periodMatch)} animate__animated animate__flipInX`}>
+                                                <span className="field-label animate__animated animate__flipInX">PERÍODO</span>
+                                                <div className="field-content">
+                                                    <span>{guess.period}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className={`field-box ${birthYearHint.className} animate__animated animate__flipInX`}>
+                                                <span className="field-label">NACIMIENTO</span>
+                                                <div className="field-content">
+                                                    <span>{guess.birthYear}</span>
+                                                    {birthYearHint.arrow && <span>{birthYearHint.arrow}</span>}
+                                                </div>
+                                            </div>
+
+                                            <div className={`field-box ${deathYearHint.className} animate__animated animate__flipInX`}>
+                                                <span className="field-label animate__animated animate__flipInX">MUERTE</span>
+                                                <div className="field-content">
+                                                    <span>
+                                                        {guess.yearOfDeath === 0 ? 'No murió' : guess.yearOfDeath}
+                                                    </span>
+                                                    {deathYearHint.arrow && <span>{deathYearHint.arrow}</span>}
+                                                </div>
+                                            </div>
+
+                                            <div className={`field-box ${getMatchClass(positionMatch)} animate__animated animate__flipInX`}>
+                                                <span className="field-label animate__animated animate__flipInX">CARGO</span>
+                                                <div className="field-content">
+                                                    <span>{guess.position || 'Ninguno'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                    </div>
+
+                    <aside className="results-panel">
+                        <h3 className="results-title">RESULTADOS</h3>
+                        <div className="results-list">
+                        {guesses.map((guess, index) => {
+                            const attemptNumber = guesses.length - index;
+
+                            const cellColors = [
+                                guess.gender === targetCharacter.gender ? 'match' : 'mismatch',
+                                guess.country === targetCharacter.country ? 'match' : 'mismatch',
+                                guess.continent === targetCharacter.continent ? 'match' : 'mismatch',
+                                guess.period === targetCharacter.period ? 'match' : 'mismatch',
+                                getYearHint(guess.birthYear, targetCharacter.birthYear).className,
+                                getYearHint(guess.yearOfDeath, targetCharacter.yearOfDeath).className,
+                                (guess.position || 'Ninguno') === (targetCharacter.position || 'Ninguno') ? 'match' : 'mismatch',
+                            ];
+
+                            return (
+                            <div key={guess.id} className="mini-attempt-item">
+                                <span className="attempt-label">INTENTO #{attemptNumber}</span>
+                                <div className="mini-grid">
+                                {cellColors.map((colorClass, cellIdx) => (
+                                    <div key={cellIdx} className={`mini-cell ${colorClass} animate__animated animate__flipInX`} />
+                                ))}
+                                </div>
+                            </div>
+                            );
+                        })}
+                        </div>
+                    </aside>
+                </div>
             )}
 
             <Link to="/jugar">Volver a desafíos</Link>
