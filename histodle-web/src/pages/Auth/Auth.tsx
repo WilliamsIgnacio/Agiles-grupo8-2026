@@ -10,11 +10,17 @@ export default function AuthPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [showPasswords, setShowPasswords] = useState(false);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
 
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError('');
+    if (isRegister && password !== passwordConfirmation) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
     try {
       if (isRegister) await register({ email, password, name }); else await login({ email, password });
       navigate('/jugar');
@@ -31,7 +37,22 @@ export default function AuthPage() {
     <form onSubmit={submit}>
       {isRegister && <label>Nombre<input type="text" aria-label="Nombre" placeholder="Tu nombre" value={name} onChange={(event) => setName(event.target.value)} required /></label>}
       <label>Email<input type="email" aria-label="Email" placeholder="tu@email.com" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
-      <label>Contraseña<input type="password" aria-label="Contraseña" placeholder="Mínimo 8 caracteres" value={password} onChange={(event) => setPassword(event.target.value)} minLength={8} required /></label>
+      <label>
+        Contraseña
+        <span className="auth-password-field">
+          <input type={showPasswords ? 'text' : 'password'} aria-label="Contraseña" placeholder="Mínimo 8 caracteres" value={password} onChange={(event) => setPassword(event.target.value)} minLength={8} required />
+        </span>
+      </label>
+      {isRegister && <label>
+        Repetir contraseña
+        <span className="auth-password-field">
+          <input type={showPasswords ? 'text' : 'password'} aria-label="Repetir contraseña" placeholder="Repetí tu contraseña" value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} minLength={8} required />
+        </span>
+      </label>}
+      <label className="auth-show-password">
+        <input type="checkbox" checked={showPasswords} onChange={(event) => setShowPasswords(event.target.checked)} />
+        Mostrar contraseñas
+      </label>
       {error && <p className="auth-error" role="alert">{error}</p>}
       <button className="auth-submit" type="submit">{isRegister ? 'Crear cuenta' : 'Ingresar'}</button>
     </form>
