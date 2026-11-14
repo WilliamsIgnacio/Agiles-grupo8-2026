@@ -70,6 +70,16 @@ const Navbar: React.FC = () => {
                                         Vincular Google
                                     </a>
                                 )}
+                                {user.provider !== 'google' && (
+                                    <NavLink
+                                        className="user-menu-item"
+                                        to="/cuenta/password"
+                                        role="menuitem"
+                                        onClick={() => setIsUserMenuOpen(false)}
+                                    >
+                                        Cambiar contraseña
+                                    </NavLink>
+                                )}
                                 <button
                                     className="user-menu-item"
                                     type="button"

@@ -40,5 +40,14 @@ export const logout = async (): Promise<void> => {
   if (!response.ok) throw new Error(await errorMessage(response));
 };
 
+export const changePassword = async (password: string): Promise<void> => {
+  const response = await request('/auth/password', {
+    method: 'PUT',
+    headers: csrfHeaders(),
+    body: JSON.stringify({ password }),
+  });
+  if (!response.ok) throw new Error(await errorMessage(response));
+};
+
 export const googleLoginURL = `${API_URL}/auth/google`;
 export const googleLinkURL = `${API_URL}/auth/google?link=1`;

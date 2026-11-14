@@ -11,6 +11,7 @@ import DifficultiesTable from './components/DifficultiesTable/DifficultiesTable'
 import Level from './components/Level/Level';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthPage from './pages/Auth/Auth';
+import ChangePassword from './pages/Account/ChangePassword';
 
 const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user, loading } = useAuth();
@@ -18,6 +19,14 @@ const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (loading) return <p>Cargando sesión...</p>;
     if (!user) return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
     if (user.role !== 'admin') return <Navigate to="/jugar" replace />;
+    return <>{children}</>;
+};
+
+const AuthenticatedGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { user, loading } = useAuth();
+    const location = useLocation();
+    if (loading) return <p>Cargando sesión...</p>;
+    if (!user) return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
     return <>{children}</>;
 };
 
@@ -40,6 +49,7 @@ const router = createBrowserRouter([
         children: [
             { index: true, element: <Navigate to="jugar" replace /> },
             { path: 'auth', element: <AuthPage /> },
+            { path: 'cuenta/password', element: <AuthenticatedGuard><ChangePassword /></AuthenticatedGuard> },
             { path: 'jugar', element: <Jugar /> },
             { path: 'jugar/practica', element: <Level practiceMode /> },
             { path: 'jugar/desafio/:challengeId', element: <Level /> },
