@@ -53,9 +53,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	u, err := h.service.CreateLocalUser(input.Email, input.Password, input.Name)
 	if err != nil {
 		if errors.Is(err, user.ErrEmailTaken) {
-			writeJSON(w, http.StatusCreated, map[string]string{
-				"email": strings.ToLower(strings.TrimSpace(input.Email)),
-			})
+			http.Error(w, err.Error(), http.StatusConflict)
 		} else {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
@@ -79,6 +77,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Google(w http.ResponseWriter, r *http.Request) {
+	if h.service.oauthConfig == nil {
+		http.Error(w, "Google OAuth no está configurado", http.StatusServiceUnavailable)
+		return
+	}
 	if r.URL.Query().Get("link") == "1" {
 		u, _, err := h.service.UserFromRequest(r)
 		if err != nil {
@@ -131,6 +133,8 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.SetCookie(w, &http.Cookie{Name: "oauth_link_user", Value: "", Path: "/auth", MaxAge: -1, HttpOnly: true})
+	http.SetCookie(w, &http.Cookie{Name: "oauth_state", Value: "", Path: "/auth", MaxAge: -1, HttpOnly: true})
+	http.SetCookie(w, &http.Cookie{Name: "oauth_nonce", Value: "", Path: "/auth", MaxAge: -1, HttpOnly: true})
 	http.Redirect(w, r, h.service.config.WebURL, http.StatusFound)
 }
 
@@ -216,7 +220,7 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/google", h.Google)
 	r.Get("/google/callback", h.GoogleCallback)
 	r.Get("/me", h.Me)
-	r.Post("/logout", h.Logout)
+	r.With(h.service.RequireAuth).Post("/logout", h.Logout)
 	r.Get("/csrf", h.CSRF)
 	r.With(h.service.RequireAuth).Put("/password", h.ChangePassword)
 }

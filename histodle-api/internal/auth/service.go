@@ -178,6 +178,9 @@ func (s *Service) ValidateCSRF(r *http.Request, session *Session) error {
 }
 
 func (s *Service) GoogleAuthURL(state, nonce string) string {
+	if s.oauthConfig == nil {
+		return ""
+	}
 	return s.oauthConfig.AuthCodeURL(state, oauth2.SetAuthURLParam("nonce", nonce))
 }
 
