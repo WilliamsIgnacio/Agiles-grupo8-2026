@@ -5,6 +5,7 @@ import type {
     ScoreInput,
     ScoreUpdateInput,
 } from '../types/score';
+import { csrfHeaders } from './auth';
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/scores`;
 
@@ -23,7 +24,8 @@ export const getScores = async (): Promise<Score[]> => {
 export const createScore = async (score: ScoreInput): Promise<Score> => {
     const response = await fetch(API_BASE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
         body: JSON.stringify(score),
     });
     if (!response.ok) {
@@ -35,7 +37,8 @@ export const createScore = async (score: ScoreInput): Promise<Score> => {
 export const updateScore = async (id: number, score: ScoreUpdateInput): Promise<Score> => {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
         body: JSON.stringify(score),
     });
     if (!response.ok) {
@@ -45,7 +48,7 @@ export const updateScore = async (id: number, score: ScoreUpdateInput): Promise<
 };
 
 export const deleteScore = async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+    const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE', credentials: 'include', headers: csrfHeaders() });
     if (!response.ok) {
         return parseError(response, 'eliminar la configuración de puntaje');
     }
@@ -59,7 +62,8 @@ export const calculateScore = async (
         `${API_BASE_URL}/difficulty/${difficultyId}/calculate`,
         {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body: JSON.stringify(input),
         },
     );

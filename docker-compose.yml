@@ -39,6 +39,13 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-histodle}
       DB_NAME: ${DB_NAME:-histodle}
       DB_SSLMODE: disable
+      APP_ENV: ${APP_ENV:-development}
+      WEB_URL: http://localhost:3000
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-http://localhost:8080/auth/google/callback}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
       migrate:
         condition: service_completed_successfully

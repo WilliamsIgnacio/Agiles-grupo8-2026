@@ -1,19 +1,32 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import logo from '../../images/histodle-classic-white-on-black.png';
 import './Navbar.css';
+import { useAuth } from '../../context/AuthContext';
+import { googleLinkURL } from '../../services/auth';
 
 interface NavItem {
     name: string;
     path: string;
 }
 
-const navLinks: NavItem[] = [
-    { name: 'Jugar', path: '/jugar'},
-    { name: 'Administrador', path: '/admin'},
-];
+const navLinks: NavItem[] = [{ name: 'Jugar', path: '/jugar' }];
 
 const Navbar: React.FC = () => {
+    const { user, logout } = useAuth();
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const closeMenu = (event: MouseEvent) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setIsUserMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', closeMenu);
+        return () => document.removeEventListener('mousedown', closeMenu);
+    }, []);
 
     return (
         <header className="navbar-container">
@@ -31,6 +44,57 @@ const Navbar: React.FC = () => {
                         {link.name}
                     </NavLink>
                 ))}
+                {user?.role === 'admin' && (
+                    <NavLink
+                        to="/admin"
+                        className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                    >
+                        Administrador
+                    </NavLink>
+                )}
+                {user ? (
+                    <div className="user-menu" ref={userMenuRef}>
+                        <button
+                            className="user-menu-trigger"
+                            type="button"
+                            aria-expanded={isUserMenuOpen}
+                            aria-haspopup="menu"
+                            onClick={() => setIsUserMenuOpen((isOpen) => !isOpen)}
+                        >
+                            {user.name || user.email}
+                        </button>
+                        {isUserMenuOpen && (
+                            <div className="user-menu-dropdown" role="menu">
+                                {user.provider === 'local' && (
+                                    <a className="user-menu-item" href={googleLinkURL} role="menuitem">
+                                        Vincular Google
+                                    </a>
+                                )}
+                                <NavLink
+                                    className="user-menu-item"
+                                    to="/cuenta/password"
+                                    role="menuitem"
+                                    onClick={() => setIsUserMenuOpen(false)}
+                                >
+                                    {user.provider === 'google' ? 'Agregar contraseña' : 'Cambiar contraseña'}
+                                </NavLink>
+                                <button
+                                    className="user-menu-item"
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                        setIsUserMenuOpen(false);
+                                        void logout();
+                                    }}
+                                >
+                                    Salir
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <NavLink className="nav-item" to="/auth">Ingresar</NavLink>
+                )}
             </nav>
         </header>
     );

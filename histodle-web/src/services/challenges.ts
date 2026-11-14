@@ -1,4 +1,5 @@
 import type { Challenge, ChallengeInput } from '../types/challenge';
+import { csrfHeaders } from './auth';
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/challenges`;
 
@@ -21,7 +22,8 @@ export const getChallenge = async (id: number): Promise<Challenge> => {
 export const createChallenge = async (challenge: ChallengeInput): Promise<Challenge> => {
     const response = await fetch(API_BASE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
         body: JSON.stringify(challenge),
     });
     if (!response.ok) {
@@ -37,7 +39,8 @@ export const updateChallenge = async (
 ): Promise<Challenge> => {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
         body: JSON.stringify(challenge),
     });
     if (!response.ok) {
@@ -48,7 +51,7 @@ export const updateChallenge = async (
 };
 
 export const deleteChallenge = async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+    const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE', credentials: 'include', headers: csrfHeaders() });
     if (!response.ok) {
         const message = await response.text();
         throw new Error(message || `Error al eliminar el desafío: ${response.statusText}`);
