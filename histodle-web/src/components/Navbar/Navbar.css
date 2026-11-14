@@ -40,6 +40,7 @@
 }
 
 .navbar-links {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.7rem;
@@ -65,4 +66,60 @@
     background: rgba(172, 103, 211, 0.18);
     color: #f7f3ff;
     box-shadow: inset 0 0 0 1px rgba(171, 134, 206, 0.22);
+}
+
+.user-menu {
+    position: relative;
+}
+
+.user-menu-trigger {
+    border: 0;
+    background: transparent;
+    color: rgba(232, 222, 242, 0.7);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.7rem 1.15rem;
+    border-radius: 1.2rem;
+    letter-spacing: 0.01em;
+}
+
+.user-menu-trigger:hover,
+.user-menu-trigger:focus-visible {
+    color: #ffffff;
+}
+
+.user-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 10;
+    min-width: 10rem;
+    padding: 0.4rem;
+    border: 1px solid rgba(171, 134, 206, 0.3);
+    border-radius: 0.8rem;
+    background: #100d13;
+    box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.35);
+}
+
+.user-menu-item {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: rgba(232, 222, 242, 0.8);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.65rem 0.8rem;
+    text-align: left;
+    text-decoration: none;
+    border-radius: 0.5rem;
+}
+
+.user-menu-item:hover,
+.user-menu-item:focus-visible {
+    background: rgba(172, 103, 211, 0.18);
+    color: #ffffff;
 }
