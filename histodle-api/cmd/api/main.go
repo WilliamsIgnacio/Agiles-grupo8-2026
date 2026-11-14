@@ -10,7 +10,10 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal("error loading configuration:", err)
+	}
 
 	db, err := database.Connect(cfg)
 	if err != nil {
@@ -19,7 +22,10 @@ func main() {
 
 	log.Println("database connected")
 
-	r := router.New(db)
+	r, err := router.New(db, cfg)
+	if err != nil {
+		log.Fatal("error configuring authentication:", err)
+	}
 
 	log.Printf("server running on port %s", cfg.Port)
 
