@@ -5,13 +5,14 @@ import * as authService from '../../services/auth';
 import './ChangePassword.css';
 
 export default function ChangePassword() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const isAddingPassword = user?.provider === 'google';
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -41,8 +42,12 @@ export default function ChangePassword() {
       <div className="change-password-card">
         <div className="change-password-heading">
           <span className="change-password-kicker">MI CUENTA</span>
-          <h1>Cambiar contraseña</h1>
-          <p>Elegí una contraseña nueva para proteger tu cuenta.</p>
+          <h1>{isAddingPassword ? 'Agregar contraseña' : 'Cambiar contraseña'}</h1>
+          <p>
+            {isAddingPassword
+              ? 'Agregá una contraseña para ingresar también con tu email.'
+              : 'Elegí una contraseña nueva para proteger tu cuenta.'}
+          </p>
         </div>
         <form onSubmit={submit}>
           <label>
