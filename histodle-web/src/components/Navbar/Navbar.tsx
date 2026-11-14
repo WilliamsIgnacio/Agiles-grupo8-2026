@@ -2,6 +2,8 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import logo from '../../images/histodle-classic-white-on-black.png';
 import './Navbar.css';
+import { useAuth } from '../../context/AuthContext';
+import { googleLinkURL } from '../../services/auth';
 
 interface NavItem {
     name: string;
@@ -14,6 +16,7 @@ const navLinks: NavItem[] = [
 ];
 
 const Navbar: React.FC = () => {
+    const { user, logout } = useAuth();
 
     return (
         <header className="navbar-container">
@@ -31,6 +34,15 @@ const Navbar: React.FC = () => {
                         {link.name}
                     </NavLink>
                 ))}
+                {user ? (
+                    <>
+                        <span className="nav-item">{user.name || user.email}</span>
+                        <a className="nav-item" href={googleLinkURL}>Vincular Google</a>
+                        <button className="nav-item" type="button" onClick={() => void logout()}>Salir</button>
+                    </>
+                ) : (
+                    <NavLink className="nav-item" to="/auth">Ingresar</NavLink>
+                )}
             </nav>
         </header>
     );
