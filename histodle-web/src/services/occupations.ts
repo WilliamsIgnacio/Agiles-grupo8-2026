@@ -1,4 +1,5 @@
 import type { Occupation } from '../types/occupations';
+import { csrfHeaders } from './auth';
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/occupations`;
 
@@ -15,8 +16,10 @@ export const getOccupations = async (): Promise<Occupation[]> => {
 export const createOccupation = async (occupationData: Omit<Occupation, 'id'>): Promise<Occupation> => {
     const response = await fetch(API_BASE_URL, {
         method: 'POST',
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
+            ...csrfHeaders(),
         },
         body: JSON.stringify(occupationData),
     });
@@ -34,8 +37,10 @@ export const updateOccupation = async (
 ): Promise<Occupation> => {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
+            ...csrfHeaders(),
         },
         body: JSON.stringify(occupationData),
     });
@@ -50,6 +55,8 @@ export const updateOccupation = async (
 export const deleteOccupation = async (id: number): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
+        headers: csrfHeaders(),
     });
 
     if (!response.ok) {

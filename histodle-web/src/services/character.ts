@@ -1,4 +1,5 @@
 import type { Character, CharacterInput } from '../types/character';
+import { csrfHeaders } from './auth';
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/characters`;
 
@@ -14,8 +15,10 @@ export const getCharacters = async (): Promise<Character[]> => {
 export const createCharacter = async (characterData: CharacterInput): Promise<Character> => {
   const response = await fetch(API_BASE_URL, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type' : 'application/json',
+      ...csrfHeaders(),
     },
     body: JSON.stringify(characterData),
   });
@@ -33,8 +36,10 @@ export const updateCharacter = async (
 ): Promise<Character> => {
   const response = await fetch(`${API_BASE_URL}/${id}`, {
     method: 'PUT',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...csrfHeaders(),
     },
     body: JSON.stringify(characterData),
   });
@@ -49,6 +54,8 @@ export const updateCharacter = async (
 export const deleteCharacter = async (id: number): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/${id}`, {
     method: 'DELETE',
+    credentials: 'include',
+    headers: csrfHeaders(),
   });
 
   if (!response.ok) {
