@@ -201,6 +201,42 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         targetCharacter !== null &&
         guesses.some((guess) => guess.id === targetCharacter.id);
 
+    const shareResult = async () => {
+        if (!targetCharacter) return;
+
+        const modeName = practiceMode ? 'Modo práctica' : challenge?.name ?? 'Desafío Diario';
+        const scoreText =
+            won && finalScore !== null ? ` Puntaje: ${finalScore}.` : '';
+        const text = `Histodle - ${modeName}: ${
+            won ? '¡Adiviné!' : 'No lo adiviné.'
+        } Personaje: ${targetCharacter.name}. Intentos: ${attempts}/${MAX_ATTEMPTS}.${scoreText}`;
+        const url = window.location.href;
+
+        try {
+            if (typeof navigator.share === 'function') {
+                await navigator.share({
+                    title: '¡Hola! Mirá mi resultado en Histodle',
+                    text,
+                    url,
+                });
+                return;
+            }
+
+            await navigator.clipboard.writeText(`${text}\n${url}`);
+            sileo.success({ title: 'Resultado copiado al portapapeles.' });
+        } catch (reason: unknown) {
+            if (reason instanceof DOMException && reason.name === 'AbortError') return;
+
+            sileo.error({
+                title: 'No se pudo compartir el resultado.',
+                description:
+                    reason instanceof Error
+                        ? reason.message
+                        : 'Intentá nuevamente.',
+            });
+        }
+    };
+
     const handleAttempt = () => {
         setAttempts((currentAttempts) => currentAttempts + 1);
     };
@@ -249,6 +285,7 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                 description: `La respuesta era ${targetCharacter.name}.`,
                 duration: 5000,
             });
+            setScoreLoading(true);
             try {
                 const result = await calculateScore(targetCharacter.difficultyId, {
                     attemptsUsed: attempts + 1,
@@ -484,9 +521,34 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                                 ? `Puntaje obtenido: ${finalScore}`
                                 : 'No se pudo calcular el puntaje.'}
                     </p>
+                    <button
+                        className="share-result-button"
+                        type="button"
+                        onClick={shareResult}
+                        disabled={scoreLoading}
+                        aria-label="Compartir resultado"
+                        title="Compartir resultado"
+                    >
+                        <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="20"
+                            height="20"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <circle cx="18" cy="5" r="3" />
+                            <circle cx="6" cy="12" r="3" />
+                            <circle cx="18" cy="19" r="3" />
+                            <path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4" />
+                        </svg>
+                    </button>
                     {practiceMode && (
                         <button className='button-play-again' type="button" onClick={startNextPractice}>
-                            Siguiente personaje
+                            Jugar de nuevo
                         </button>
                     )}
                 </div>
@@ -495,6 +557,13 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
             {practiceMode && !won && attempts >= MAX_ATTEMPTS && (
                 <div className="game-result" role="status">
                     <h2>¡Perdiste! Se acabaron los intentos.</h2>
+                    <button
+                        className="button-play-again"
+                        type="button"
+                        onClick={shareResult}
+                    >
+                        Compartir resultado
+                    </button>
                     <button className='button-play-again' type="button" onClick={startNextPractice}>
                         Siguiente personaje
                     </button>
@@ -502,9 +571,33 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
             )}
 
             {!practiceMode && !won && attempts >= MAX_ATTEMPTS && (
-                <div>
-                <h2>Perdiste!</h2>
-                <p role="status">No tienes mas intentos.</p>
+                <div className="game-result" role="status">
+                    <h2>¡Perdiste! No tenés más intentos.</h2>
+                    <button
+                        className="share-result-button"
+                        type="button"
+                        onClick={shareResult}
+                        disabled={scoreLoading}
+                        aria-label="Compartir resultado"
+                        title="Compartir resultado"
+                    >
+                        <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="20"
+                            height="20"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <circle cx="18" cy="5" r="3" />
+                            <circle cx="6" cy="12" r="3" />
+                            <circle cx="18" cy="19" r="3" />
+                            <path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4" />
+                        </svg>
+                    </button>
                 </div>
             )}
 

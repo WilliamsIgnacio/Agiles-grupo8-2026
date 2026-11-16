@@ -506,7 +506,24 @@ main > section:has(> form) > table tbody td.guess-value.mismatch::before {
 }
 
 .game-result button:hover {
-    background: #c03be0;
+    background: #151515;
+}
+
+.game-result button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.game-result .share-result-button {
+    display: inline-grid;
+    width: 2.8rem;
+    min-width: 2.8rem;
+    height: 2.8rem;
+    min-height: 2.8rem;
+    padding: 0;
+    place-items: center;
+    background-color: #000000;
+    color: #c026e8;
 }
 
 .attempts-text {
