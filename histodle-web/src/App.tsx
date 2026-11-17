@@ -6,6 +6,7 @@ import { Toaster } from 'sileo';
 import Navbar from './components/Navbar/Navbar';
 import Admin, { CharacterFormOutlet, CharactersTableOutlet, ChallengesFormOutlet, ChallengesTableOutlet, ScoresTableOutlet } from './pages/Admin/Admin';
 import Jugar from './pages/Jugar/Jugar';
+import DailyChallenges from './pages/DailyChallenges/DailyChallenges';
 import OccupationsTable from './components/OccupationsTable/OccupationsTable';
 import DifficultiesTable from './components/DifficultiesTable/DifficultiesTable';
 import Level from './components/Level/Level';
@@ -55,6 +56,8 @@ const router = createBrowserRouter([
             { path: 'resultados', element: <Resultados /> },
             { path: 'jugar/practica', element: <Level practiceMode /> },
             { path: 'jugar/desafio/:challengeId', element: <AuthenticatedGuard><Level /></AuthenticatedGuard> },
+            { path: 'jugar/desafios', element: <DailyChallenges /> },
+            { path: 'jugar/desafio-diario/:date', element: <Level dailyMode /> },
             { 
                 path: 'admin', 
                 element: <AdminGuard><Admin /></AdminGuard> ,
