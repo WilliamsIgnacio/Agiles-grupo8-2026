@@ -4,7 +4,11 @@ import { sileo } from 'sileo';
 
 import { getCharacters } from '../../services/character';
 import { getChallenge } from '../../services/challenges';
-import { recordChallengeResult, type ChallengeResultInput } from '../../services/leaderboard';
+import {
+    recordChallengeResult,
+    recordDailyChallengeResult,
+    type ChallengeResultInput,
+} from '../../services/leaderboard';
 import {
     getDailyChallenge,
     saveDailyChallengeResult,
@@ -314,7 +318,9 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false, dailyMode = false }
         setResultSubmissionError(null);
         setScoreLoading(true);
         try {
-            const result = await recordChallengeResult(challengeId, input);
+            const result = dailyMode
+                ? await recordDailyChallengeResult(dailyDate, input)
+                : await recordChallengeResult(challengeId, input);
             setFinalScore(result.score);
             setResultCounted(result.counted);
             setPendingChallengeResult(null);

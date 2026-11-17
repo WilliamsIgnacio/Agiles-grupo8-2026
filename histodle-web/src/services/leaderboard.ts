@@ -48,3 +48,19 @@ export const recordChallengeResult = async (
     }
     return response.json();
 };
+
+export const recordDailyChallengeResult = async (
+    date: string,
+    result: ChallengeResultInput,
+): Promise<ChallengeResultResponse> => {
+    const response = await fetch(`${API_URL}/daily-challenges/${date}/results`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
+        body: JSON.stringify(result),
+    });
+    if (!response.ok) {
+        throw await readError(response, 'registrar el resultado del desafío diario');
+    }
+    return response.json();
+};

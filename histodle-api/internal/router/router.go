@@ -10,6 +10,7 @@ import (
 	"histodle-api/internal/category"
 	"histodle-api/internal/challenge"
 	"histodle-api/internal/character"
+	"histodle-api/internal/dailychallenge"
 	"histodle-api/internal/difficulty"
 	"histodle-api/internal/leaderboard"
 	"histodle-api/internal/metrics"
@@ -64,6 +65,11 @@ func New(db *gorm.DB, cfg config.Config) (http.Handler, error) {
 	r.With(authService.RequireAdmin).Put("/challenges/{id}", challengeHandler.Update)
 	r.With(authService.RequireAdmin).Delete("/challenges/{id}", challengeHandler.Delete)
 
+	dailyChallengeRepository := dailychallenge.NewRepository(db)
+	dailyChallengeService := dailychallenge.NewService(dailyChallengeRepository)
+	dailyChallengeHandler := dailychallenge.NewHandler(dailyChallengeService)
+	r.Get("/daily-challenges/{date}", dailyChallengeHandler.Get)
+
 	//rutas de ocupaciones
 	occupationRepository := occupation.NewOccupationRepository(db)
 	occupationService := occupation.NewService(occupationRepository)
@@ -108,6 +114,7 @@ func New(db *gorm.DB, cfg config.Config) (http.Handler, error) {
 	r.With(authService.RequireAdmin).Delete("/scores/{id}", scoreHandler.Delete)
 	r.Get("/leaderboard", leaderboardHandler.Ranking)
 	r.With(authService.RequireAuth).Post("/challenges/{challengeId}/results", leaderboardHandler.Record)
+	r.With(authService.RequireAuth).Post("/daily-challenges/{date}/results", leaderboardHandler.RecordDaily)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
