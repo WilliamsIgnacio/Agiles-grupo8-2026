@@ -21,8 +21,7 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (handler *Handler) Get(w http.ResponseWriter, r *http.Request) {
-	today := time.Now().In(time.FixedZone("Argentina", argentinaUTCOffset))
-	date, err := parseDate(chi.URLParam(r, "date"), today)
+	date, err := ParseDate(chi.URLParam(r, "date"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -39,6 +38,11 @@ func (handler *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, dailyChallenge)
+}
+
+func ParseDate(value string) (time.Time, error) {
+	today := time.Now().In(time.FixedZone("Argentina", argentinaUTCOffset))
+	return parseDate(value, today)
 }
 
 func parseDate(value string, today time.Time) (time.Time, error) {

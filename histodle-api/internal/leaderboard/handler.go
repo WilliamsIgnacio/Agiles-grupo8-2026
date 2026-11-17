@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"histodle-api/internal/auth"
+	"histodle-api/internal/dailychallenge"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
@@ -42,21 +43,56 @@ func (handler *Handler) Record(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	input, err := decodeRecordInput(w, r)
+	if err != nil {
+		return
+	}
+
+	result, err := handler.service.Record(user.ID, uint(challengeID), input)
+	handler.writeRecordResult(w, result, err)
+}
+
+func (handler *Handler) RecordDaily(w http.ResponseWriter, r *http.Request) {
+	user, ok := auth.UserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "No autenticado", http.StatusUnauthorized)
+		return
+	}
+	date, err := dailychallenge.ParseDate(chi.URLParam(r, "date"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	input, err := decodeRecordInput(w, r)
+	if err != nil {
+		return
+	}
+
+	result, err := handler.service.RecordDaily(user.ID, date, input)
+	handler.writeRecordResult(w, result, err)
+}
+
+func decodeRecordInput(w http.ResponseWriter, r *http.Request) (RecordInput, error) {
 	r.Body = http.MaxBytesReader(w, r.Body, 16<<10)
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	var input RecordInput
 	if err := decoder.Decode(&input); err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
-		return
+		return RecordInput{}, err
 	}
 	var extra any
 	if err := decoder.Decode(&extra); err != io.EOF {
 		http.Error(w, "El cuerpo debe contener un único objeto JSON", http.StatusBadRequest)
-		return
+		if err == nil {
+			return RecordInput{}, errors.New("el cuerpo contiene más de un objeto JSON")
+		}
+		return RecordInput{}, err
 	}
+	return input, nil
+}
 
-	result, err := handler.service.Record(user.ID, uint(challengeID), input)
+func (handler *Handler) writeRecordResult(w http.ResponseWriter, result RecordResult, err error) {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		http.Error(w, "Desafío no encontrado", http.StatusNotFound)
 		return

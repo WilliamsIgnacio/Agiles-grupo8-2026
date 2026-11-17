@@ -13,6 +13,21 @@ type ChallengeResult struct {
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
+type DailyChallengeResult struct {
+	ID            uint      `gorm:"primaryKey" json:"id"`
+	UserID        uint      `gorm:"not null" json:"userId"`
+	ChallengeDate time.Time `gorm:"column:challenge_date;type:date;not null" json:"challengeDate"`
+	Points        uint      `gorm:"not null" json:"points"`
+	AttemptsUsed  int       `gorm:"not null" json:"attemptsUsed"`
+	HintsUsed     int       `gorm:"not null" json:"hintsUsed"`
+	Won           bool      `gorm:"not null" json:"won"`
+	CreatedAt     time.Time `json:"createdAt"`
+}
+
+func (DailyChallengeResult) TableName() string {
+	return "daily_challenge_results"
+}
+
 type Entry struct {
 	Position         int    `json:"position"`
 	Name             string `json:"name"`

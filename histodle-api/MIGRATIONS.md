@@ -101,7 +101,7 @@ migrate create -ext sql -dir migrations -seq nombre_del_cambio
 
 > La forma normal de uso del equipo debe ser el script. Los comandos manuales quedan como alternativa para debugging o ejecución directa.
 
-La migración `000017_create_challenge_results` crea el registro único por jugador y desafío que usa el ranking. Aplicala en cada entorno ejecutando el procedimiento habitual antes de iniciar la nueva versión de la API.
+La migración `000017_create_challenge_results` crea el registro único por jugador y desafío convencional. Las migraciones `000018_create_daily_challenges` y `000019_create_daily_challenge_results` habilitan los desafíos diarios y sus resultados puntuables; el ranking combina ambos tipos. Aplicá las migraciones en cada entorno antes de iniciar la nueva versión de la API.
 
 ## Recomendación
 
