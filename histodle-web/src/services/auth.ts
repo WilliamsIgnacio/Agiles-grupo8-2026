@@ -51,3 +51,9 @@ export const changePassword = async (password: string): Promise<void> => {
 
 export const googleLoginURL = `${API_URL}/auth/google`;
 export const googleLinkURL = `${API_URL}/auth/google?link=1`;
+export const googleLoginURLFor = (returnTo?: string): string => {
+  if (!returnTo) return googleLoginURL;
+  const url = new URL(googleLoginURL);
+  url.searchParams.set('returnTo', returnTo);
+  return url.toString();
+};

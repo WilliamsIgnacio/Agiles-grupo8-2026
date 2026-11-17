@@ -1,0 +1,127 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+.resultados-page {
+    max-width: 1100px;
+    margin: 3.5rem auto;
+    padding: 2rem;
+    color: #f4effc;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.resultados-eyebrow {
+    margin: 0 0 0.8rem;
+    color: rgb(182, 50, 223);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.resultados-page h1 {
+    margin: 0;
+    font-family: 'Fraunces', 'Fraunces Fallback';
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+}
+
+.resultados-description {
+    margin: 1rem 0 2rem;
+    color: rgba(228, 224, 234, 0.8);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.resultados-error {
+    color: #fca5a5;
+}
+
+.resultados-empty {
+    padding: 1.5rem;
+    border: 1px solid rgba(191, 152, 228, 0.16);
+    border-radius: 1rem;
+    color: rgba(228, 224, 234, 0.8);
+    background: #1d1723;
+}
+
+.ranking-table-container {
+    overflow-x: auto;
+    border: 1px solid rgba(191, 152, 228, 0.16);
+    border-radius: 1rem;
+    background: #1d1723;
+}
+
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.ranking-table caption {
+    padding: 1rem 1.25rem;
+    color: rgba(228, 224, 234, 0.65);
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+.ranking-table thead {
+    background: rgba(172, 103, 211, 0.12);
+}
+
+.ranking-table th,
+.ranking-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(191, 152, 228, 0.12);
+    white-space: nowrap;
+}
+
+.ranking-table thead th {
+    color: rgba(228, 224, 234, 0.72);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ranking-table tbody tr:last-child th,
+.ranking-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.ranking-table tbody tr:hover {
+    background: rgba(172, 103, 211, 0.08);
+}
+
+.ranking-position {
+    color: #c98ee6;
+    font-weight: 700;
+}
+
+.ranking-player {
+    color: #f6f3ff;
+    font-weight: 600;
+}
+
+.ranking-points {
+    color: #d8a4f0;
+    font-weight: 700;
+    text-align: right;
+}
+
+.ranking-table thead th:last-child {
+    text-align: right;
+}
+
+@media (max-width: 640px) {
+    .resultados-page {
+        margin: 2rem auto;
+        padding: 1.2rem;
+    }
+
+    .ranking-table th,
+    .ranking-table td {
+        padding: 0.85rem 0.75rem;
+    }
+}

@@ -12,9 +12,14 @@ func Calculate(score Score, attemptsUsed, hintsUsed int, won bool) (uint, error)
 		return 0, fmt.Errorf("configuración de puntaje inválida: %w", err)
 	}
 
-	if attemptsUsed < 1 || attemptsUsed > MaxAttempts {
+	minAttempts := 1
+	if !won {
+		minAttempts = 0
+	}
+	if attemptsUsed < minAttempts || attemptsUsed > MaxAttempts {
 		return 0, fmt.Errorf(
-			"la cantidad de intentos debe estar entre 1 y %d",
+			"la cantidad de intentos debe estar entre %d y %d",
+			minAttempts,
 			MaxAttempts,
 		)
 	}

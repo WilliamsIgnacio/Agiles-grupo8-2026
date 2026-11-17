@@ -101,6 +101,8 @@ migrate create -ext sql -dir migrations -seq nombre_del_cambio
 
 > La forma normal de uso del equipo debe ser el script. Los comandos manuales quedan como alternativa para debugging o ejecución directa.
 
+La migración `000017_create_challenge_results` crea el registro único por jugador y desafío que usa el ranking. Aplicala en cada entorno ejecutando el procedimiento habitual antes de iniciar la nueva versión de la API.
+
 ## Recomendación
 
 Mantener migraciones en SQL es la opción correcta para este proyecto. La API no crea el esquema al iniciar, por lo que el cambio de base de datos debe aplicarse mediante migraciones versionadas y reproducibles.
