@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { sileo } from 'sileo';
 import { googleLoginURL } from '../../services/auth';
 import { useAuth } from '../../context/AuthContext';
 import './Auth.css';
@@ -14,17 +15,45 @@ export default function AuthPage() {
   const [showPasswords, setShowPasswords] = useState(false);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submit = async (event: FormEvent) => {
-    event.preventDefault(); setError('');
+    event.preventDefault();
+    if (isSubmitting) return;
+    setError('');
+
     if (isRegister && password !== passwordConfirmation) {
-      setError('Las contraseñas no coinciden.');
+      const validationError = 'Las contraseñas no coinciden.';
+      setError(validationError);
+      sileo.error({ title: validationError });
       return;
     }
+
+    setIsSubmitting(true);
     try {
-      if (isRegister) await register({ email, password, name }); else await login({ email, password });
+      const operation = isRegister
+        ? register({ email, password, name })
+        : login({ email, password });
+
+      await sileo.promise(operation, {
+        loading: {
+          title: isRegister ? 'Creando cuenta...' : 'Iniciando sesión...',
+        },
+        success: {
+          title: isRegister ? '¡Cuenta creada!' : '¡Sesión iniciada!',
+        },
+        error: {
+          title: isRegister
+            ? 'No se pudo crear la cuenta.'
+            : 'No se pudo iniciar sesión.',
+        },
+      });
       navigate('/jugar');
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'No se pudo autenticar'); }
+    } catch (reason: unknown) {
+      setError(reason instanceof Error ? reason.message : 'No se pudo autenticar');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return <section className="auth-page">
@@ -54,11 +83,24 @@ export default function AuthPage() {
         Mostrar contraseñas
       </label>
       {error && <p className="auth-error" role="alert">{error}</p>}
-      <button className="auth-submit" type="submit">{isRegister ? 'Crear cuenta' : 'Ingresar'}</button>
+      <button className="auth-submit" type="submit" disabled={isSubmitting}>
+        {isSubmitting
+          ? 'Procesando...'
+          : isRegister
+            ? 'Crear cuenta'
+            : 'Ingresar'}
+      </button>
     </form>
     <div className="auth-divider"><span>o continuar con</span></div>
     <a className="auth-google" href={googleLoginURL}>Continuar con Google</a>
-    <button className="auth-toggle" type="button" onClick={() => setIsRegister(!isRegister)}>{isRegister ? 'Ya tengo una cuenta' : 'Crear una cuenta'}</button>
+    <button
+      className="auth-toggle"
+      type="button"
+      onClick={() => setIsRegister(!isRegister)}
+      disabled={isSubmitting}
+    >
+      {isRegister ? 'Ya tengo una cuenta' : 'Crear una cuenta'}
+    </button>
     <Link className="auth-guest" to="/jugar">Continuar sin iniciar sesión</Link>
     </div>
   </section>;

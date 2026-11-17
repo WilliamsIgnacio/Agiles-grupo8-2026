@@ -1,4 +1,4 @@
-import { useEffect, useState, type SubmitEvent } from 'react';
+import { Fragment, useEffect, useState, type SubmitEvent } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 
@@ -35,6 +35,11 @@ const getYearHint = (guessYear: number, targetYear: number) => {
                 : 'El personaje misterioso es más viejo',
     };
 };
+
+interface RevealedHintPlacement {
+    hint: CharacterHint;
+    afterGuessId: number | null;
+}
 
     interface LevelProps {
         practiceMode?: boolean;
@@ -77,7 +82,8 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState('');
     const [attempts, setAttempts] = useState(0);
-    const [revealedHints, setRevealedHints] = useState<CharacterHint[]>([]);
+    const [gaveUp, setGaveUp] = useState(false);
+    const [revealedHints, setRevealedHints] = useState<RevealedHintPlacement[]>([]);
     const hintsUsed = revealedHints.length;
     const [finalScore, setFinalScore] = useState<number | null>(null);
     const [scoreLoading, setScoreLoading] = useState(false);
@@ -97,6 +103,7 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         setGuessName('');
         setMessage('');
         setAttempts(0);
+        setGaveUp(false);
         setRevealedHints([]);
         setFinalScore(null);
         setScoreLoading(false);
@@ -140,6 +147,7 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
             setGuessName('');
             setMessage('');
             setAttempts(0);
+            setGaveUp(false);
             setRevealedHints([]);
             setFinalScore(null);
             setScoreLoading(false);
@@ -200,6 +208,7 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
     const won =
         targetCharacter !== null &&
         guesses.some((guess) => guess.id === targetCharacter.id);
+    const gameFinished = won || gaveUp || attempts >= MAX_ATTEMPTS;
 
     const shareResult = async () => {
         if (!targetCharacter) return;
@@ -208,7 +217,7 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         const scoreText =
             won && finalScore !== null ? ` Puntaje: ${finalScore}.` : '';
         const text = `Histodle - ${modeName}: ${
-            won ? '¡Adiviné!' : 'No lo adiviné.'
+            won ? '¡Adiviné!' : gaveUp ? 'Me rendí.' : 'No lo adiviné.'
         } Personaje: ${targetCharacter.name}. Intentos: ${attempts}/${MAX_ATTEMPTS}.${scoreText}`;
         const url = window.location.href;
 
@@ -241,25 +250,41 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         setAttempts((currentAttempts) => currentAttempts + 1);
     };
 
+    const surrenderGame = () => {
+        if (gameFinished) return;
+
+        setGaveUp(true);
+        setGuessName('');
+        setShowSuggestions(false);
+    };
+
     const revealHint = () => {
-        if (!targetCharacter || won) return;
+        if (!targetCharacter || gameFinished) return;
 
         setRevealedHints((currentHints) => {
             const availableHints = targetCharacter.hints.filter(
                 (hint) =>
-                    !currentHints.some((revealedHint) => revealedHint.id === hint.id),
+                    !currentHints.some(
+                        (revealedHint) => revealedHint.hint.id === hint.id,
+                    ),
             );
             if (availableHints.length === 0) return currentHints;
 
             const randomIndex = Math.floor(Math.random() * availableHints.length);
-            return [...currentHints, availableHints[randomIndex]];
+            return [
+                ...currentHints,
+                {
+                    hint: availableHints[randomIndex],
+                    afterGuessId: guesses[0]?.id ?? null,
+                },
+            ];
         });
     };
 
     const submitGuess = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (attempts >= MAX_ATTEMPTS) return;
+        if (gameFinished) return;
 
         const guess = characters.find(
         (character) =>
@@ -278,6 +303,13 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
 
         handleAttempt();
         setGuesses((currentGuesses) => [guess, ...currentGuesses]);
+        setRevealedHints((currentHints) =>
+            currentHints.map((revealedHint) =>
+                revealedHint.afterGuessId === null
+                    ? { ...revealedHint, afterGuessId: guess.id }
+                    : revealedHint,
+            ),
+        );
         setGuessName('');
         if (guess.id === targetCharacter?.id) {
             sileo.success({
@@ -355,6 +387,24 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         ['yellow', 'dark', 'green']
     ]
 
+    const renderHintPanel = (hints: RevealedHintPlacement[]) => (
+        <div className="revealed-hints-container">
+            <div className="revealed-hints-header">
+                <h3 className="hints-title">Pistas reveladas</h3>
+            </div>
+            <div className="revealed-hints-content">
+                {hints.map(({ hint }) => (
+                    <p key={hint.id} className="hint-card">
+                        {hint.text}
+                    </p>
+                ))}
+            </div>
+        </div>
+    );
+    const unanchoredHints = revealedHints.filter(
+        (revealedHint) => revealedHint.afterGuessId === null,
+    );
+
     return (
         <section className="level-page">
             <header className='level-header'>
@@ -381,74 +431,120 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                 <p className="challenge-description">{challenge.description}</p>
             )}
 
-            <form onSubmit={submitGuess} className="guess-form">
-                <div className="search-container">
-                    <input
-                        id="character-guess"
-                        value={guessName}
-                        onChange={(event) => {
-                            setGuessName(event.target.value);
-                            setShowSuggestions(true);
-                        }}
-                        onFocus={() => setShowSuggestions(true)}
-                        autoComplete="off"
-                        disabled={won || attempts >= MAX_ATTEMPTS}
-                        placeholder="Buscar personaje..."
-                    />
+            {message && <p role="status">{message}</p>}
+            {won && (
+                <div className="game-result" role="status">
+                    <p>
+                        ¡Adivinaste el personaje misterioso! 
+                        {scoreLoading
+                            ? 'Calculando puntaje...'
+                            : finalScore !== null
+                                ? ` Tu puntaje obtenido es de ${finalScore} puntos`
+                                : 'No se pudo calcular el puntaje.'}
+                    </p>
+                </div>
+            )}
 
-                    {showSuggestions && guessName.trim() !== '' && (
-                        <div className="suggestions-dropdown">
-                            {characters
-                                .filter((character) =>
+            {practiceMode && !won && (gaveUp || attempts >= MAX_ATTEMPTS) && (
+                <div className="game-result-giveup" role="status">
+                    {gaveUp ? '¡Te rendiste!' : '¡Perdiste! Se acabaron los intentos.'}
+                    {gaveUp && <p>El personaje era {targetCharacter.name}.</p>}
+                </div>
+            )}
+
+
+            <form onSubmit={submitGuess} className="guess-form">
+                <div className="guess-search-row">
+                    <button
+                        type="button"
+                        className="surrender-button"
+                        onClick={surrenderGame}
+                        disabled={gameFinished}
+                        aria-label="Rendirse"
+                        title="Rendirse"
+                    >
+                        <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="21"
+                            height="21"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <path d="M5 21V5m0 0c5-4 9 4 14 0v10c-5 4-9-4-14 0" />
+                        </svg>
+                    </button>
+
+                    <div className="search-container">
+                        <input
+                            id="character-guess"
+                            value={guessName}
+                            onChange={(event) => {
+                                setGuessName(event.target.value);
+                                setShowSuggestions(true);
+                            }}
+                            onFocus={() => setShowSuggestions(true)}
+                            autoComplete="off"
+                            disabled={gameFinished}
+                            placeholder="Buscar personaje..."
+                        />
+
+                        {showSuggestions && guessName.trim() !== '' && (
+                            <div className="suggestions-dropdown">
+                                {characters
+                                    .filter((character) =>
+                                        normalizeName(character.name).includes(
+                                            normalizeName(guessName)
+                                        )
+                                    )
+                                    .slice(0, 4)
+                                    .map((character) => (
+                                        <button
+                                            key={character.id}
+                                            type="button"
+                                            className="suggestion-item"
+                                            onMouseDown={(event) => event.preventDefault()}
+                                            onClick={() => {
+                                                setGuessName(character.name);
+                                                setShowSuggestions(false);
+                                            }}
+                                        >
+                                            <span className="suggestion-name">
+                                                {character.name}
+                                            </span>
+
+                                            <span className="suggestion-years">
+                                                {character.birthYear} – {
+                                                    character.yearOfDeath === 0
+                                                        ? 'Actualidad'
+                                                        : character.yearOfDeath
+                                                }
+                                            </span>
+                                        </button>
+                                    ))}
+
+                                {characters.filter((character) =>
                                     normalizeName(character.name).includes(
                                         normalizeName(guessName)
                                     )
-                                )
-                                .slice(0, 4)
-                                .map((character) => (
-                                    <button
-                                        key={character.id}
-                                        type="button"
-                                        className="suggestion-item"
-                                        onMouseDown={(event) => event.preventDefault()}
-                                        onClick={() => {
-                                            setGuessName(character.name);
-                                            setShowSuggestions(false);
-                                        }}
-                                    >
-                                        <span className="suggestion-name">
-                                            {character.name}
-                                        </span>
-
-                                        <span className="suggestion-years">
-                                            {character.birthYear} – {
-                                                character.yearOfDeath === 0
-                                                    ? 'Actualidad'
-                                                    : character.yearOfDeath
-                                            }
-                                        </span>
-                                    </button>
-                                ))}
-
-                            {characters.filter((character) =>
-                                normalizeName(character.name).includes(
-                                    normalizeName(guessName)
-                                )
-                            ).length === 0 && (
-                                <p className="no-suggestions">
-                                    No se encontraron personajes.
-                                </p>
-                            )}
-                        </div>
-                    )}
+                                ).length === 0 && (
+                                    <p className="no-suggestions">
+                                        No se encontraron personajes.
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="guess-form-actions">
                     <button
                         type="submit"
                         disabled={
-                            won ||
-                            attempts >= MAX_ATTEMPTS ||
+                            gameFinished ||
                             guessName.trim() === ''
                         }
                     >
@@ -459,7 +555,7 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                         type="button"
                         className="hint-circle-button"
                         onClick={revealHint}
-                        disabled={won || attempts >= MAX_ATTEMPTS || hintsUsed >= targetCharacter.hints.length}
+                        disabled={gameFinished || hintsUsed >= targetCharacter.hints.length}
                         title={hintsUsed >= targetCharacter.hints.length ? 'No hay más pistas' : 'Obtener pista'}
                         aria-label="Revelar pista"
                     >
@@ -509,115 +605,24 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                 </div>
             )}
 
-
-            {message && <p role="status">{message}</p>}
-            {won && (
+            {!practiceMode && !won && (gaveUp || attempts >= MAX_ATTEMPTS) && (
                 <div className="game-result" role="status">
-                    <h2>¡Adivinaste el personaje!</h2>
-                    <p>
-                        {scoreLoading
-                            ? 'Calculando puntaje...'
-                            : finalScore !== null
-                                ? `Puntaje obtenido: ${finalScore}`
-                                : 'No se pudo calcular el puntaje.'}
-                    </p>
-                    <button
-                        className="share-result-button"
-                        type="button"
-                        onClick={shareResult}
-                        disabled={scoreLoading}
-                        aria-label="Compartir resultado"
-                        title="Compartir resultado"
-                    >
-                        <svg
-                            aria-hidden="true"
-                            viewBox="0 0 24 24"
-                            width="20"
-                            height="20"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <circle cx="18" cy="5" r="3" />
-                            <circle cx="6" cy="12" r="3" />
-                            <circle cx="18" cy="19" r="3" />
-                            <path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4" />
-                        </svg>
-                    </button>
-                    {practiceMode && (
-                        <button className='button-play-again' type="button" onClick={startNextPractice}>
-                            Jugar de nuevo
-                        </button>
-                    )}
-                </div>
-            )}
-
-            {practiceMode && !won && attempts >= MAX_ATTEMPTS && (
-                <div className="game-result" role="status">
-                    <h2>¡Perdiste! Se acabaron los intentos.</h2>
-                    <button
-                        className="button-play-again"
-                        type="button"
-                        onClick={shareResult}
-                    >
-                        Compartir resultado
-                    </button>
-                    <button className='button-play-again' type="button" onClick={startNextPractice}>
-                        Siguiente personaje
-                    </button>
-                </div>
-            )}
-
-            {!practiceMode && !won && attempts >= MAX_ATTEMPTS && (
-                <div className="game-result" role="status">
-                    <h2>¡Perdiste! No tenés más intentos.</h2>
-                    <button
-                        className="share-result-button"
-                        type="button"
-                        onClick={shareResult}
-                        disabled={scoreLoading}
-                        aria-label="Compartir resultado"
-                        title="Compartir resultado"
-                    >
-                        <svg
-                            aria-hidden="true"
-                            viewBox="0 0 24 24"
-                            width="20"
-                            height="20"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <circle cx="18" cy="5" r="3" />
-                            <circle cx="6" cy="12" r="3" />
-                            <circle cx="18" cy="19" r="3" />
-                            <path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4" />
-                        </svg>
-                    </button>
+                    <h2>{gaveUp ? 'Te rendiste.' : '¡Perdiste! No tenés más intentos.'}</h2>
+                    {gaveUp && <p>El personaje era {targetCharacter.name}.</p>}
                 </div>
             )}
 
             {(guesses.length > 0 || revealedHints.length > 0) && (
                 <div className='game-layout'>
                     <div className='attempts-column'>
-                        {revealedHints.length > 0 && (
-                            <div className="revealed-hints-container animate__animated animate__fadeIn">
-                                <h3 className="hints-title">Pistas reveladas:</h3>
-                                {revealedHints.map((hint) => (
-                                    <div key={hint.id} className="hint-card">
-                                        {hint.text}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        {unanchoredHints.length > 0 && renderHintPanel(unanchoredHints)}
 
                         {guesses.map((guess) => {
                                 const birthYearHint = getYearHint(guess.birthYear, targetCharacter.birthYear);
                                 const deathYearHint = getYearHint(guess.yearOfDeath, targetCharacter.yearOfDeath);
+                                const hintsBeforeGuess = revealedHints.filter(
+                                    (revealedHint) => revealedHint.afterGuessId === guess.id,
+                                );
 
                                 const initials = guess.name
                                     .split(' ')
@@ -633,7 +638,9 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                                 const positionMatch = (guess.position || 'Ninguno') === (targetCharacter.position || 'Ninguno');
 
                                 return (
-                                    <div key={guess.id} className="attempt-card">
+                                    <Fragment key={guess.id}>
+                                    {hintsBeforeGuess.length > 0 && renderHintPanel(hintsBeforeGuess)}
+                                    <div className="attempt-card">
                                         <div className="attempt-card-header">
                                             <div className="avatar-circle">{initials}</div>
                                             <div>
@@ -717,39 +724,97 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                                             </div>
                                         </div>
                                     </div>
+                                    </Fragment>
                                 );
                             })}
                     </div>
 
-                    <aside className="results-panel">
-                        <h3 className="results-title">RESULTADOS</h3>
-                        <div className="results-list">
-                        {guesses.map((guess, index) => {
-                            const attemptNumber = guesses.length - index;
-
-                            const cellColors = [
-                                guess.gender === targetCharacter.gender ? 'match' : 'mismatch',
-                                guess.country === targetCharacter.country ? 'match' : 'mismatch',
-                                guess.continent === targetCharacter.continent ? 'match' : 'mismatch',
-                                guess.period === targetCharacter.period ? 'match' : 'mismatch',
-                                getYearHint(guess.birthYear, targetCharacter.birthYear).className,
-                                getYearHint(guess.yearOfDeath, targetCharacter.yearOfDeath).className,
-                                (guess.position || 'Ninguno') === (targetCharacter.position || 'Ninguno') ? 'match' : 'mismatch',
-                            ];
-
-                            return (
-                            <div key={guess.id} className="mini-attempt-item">
-                                <span className="attempt-label">INTENTO #{attemptNumber}</span>
-                                <div className="mini-grid">
-                                {cellColors.map((colorClass, cellIdx) => (
-                                    <div key={cellIdx} className={`mini-cell ${colorClass} animate__animated animate__flipInX`} />
-                                ))}
-                                </div>
+                    <div className="results-column">
+                        {gameFinished && (
+                            <div className="result-actions" role="group" aria-label="Acciones del resultado">
+                                <button
+                                    className="result-action-button share-result-button"
+                                    type="button"
+                                    onClick={shareResult}
+                                    disabled={scoreLoading}
+                                    aria-label="Compartir resultado"
+                                    title="Compartir resultado"
+                                >
+                                    <svg
+                                        aria-hidden="true"
+                                        viewBox="0 0 24 24"
+                                        width="20"
+                                        height="20"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <circle cx="18" cy="5" r="3" />
+                                        <circle cx="6" cy="12" r="3" />
+                                        <circle cx="18" cy="19" r="3" />
+                                        <path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4" />
+                                    </svg>
+                                </button>
+                                {practiceMode && (
+                                    <button
+                                        className="button-play-again result-action-button replay-button"
+                                        type="button"
+                                        onClick={startNextPractice}
+                                        aria-label="Jugar de nuevo"
+                                        title="Jugar de nuevo"
+                                    >
+                                        <svg
+                                            aria-hidden="true"
+                                            viewBox="0 0 24 24"
+                                            width="20"
+                                            height="20"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M21 12a9 9 0 0 0-15.36-6.36L3 8" />
+                                            <path d="M3 3v5h5" />
+                                            <path d="M3 12a9 9 0 0 0 15.36 6.36L21 16" />
+                                            <path d="M21 21v-5h-5" />
+                                        </svg>
+                                    </button>
+                                )}
                             </div>
-                            );
-                        })}
+                        )}
+                            <aside className="results-panel">
+                                <h3 className="results-title">RESULTADOS</h3>
+                                <div className="results-list">
+                                {guesses.map((guess, index) => {
+                                    const attemptNumber = guesses.length - index;
+
+                                    const cellColors = [
+                                        guess.gender === targetCharacter.gender ? 'match' : 'mismatch',
+                                        guess.country === targetCharacter.country ? 'match' : 'mismatch',
+                                        guess.continent === targetCharacter.continent ? 'match' : 'mismatch',
+                                        guess.period === targetCharacter.period ? 'match' : 'mismatch',
+                                        getYearHint(guess.birthYear, targetCharacter.birthYear).className,
+                                        getYearHint(guess.yearOfDeath, targetCharacter.yearOfDeath).className,
+                                        (guess.position || 'Ninguno') === (targetCharacter.position || 'Ninguno') ? 'match' : 'mismatch',
+                                    ];
+
+                                    return (
+                                        <div key={guess.id} className="mini-attempt-item">
+                                            <span className="attempt-label">INTENTO #{attemptNumber}</span>
+                                            <div className="mini-grid">
+                                                {cellColors.map((colorClass, cellIdx) => (
+                                                    <div key={cellIdx} className={`mini-cell ${colorClass} animate__animated animate__flipInX`} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                </div>
+                            </aside>
                         </div>
-                    </aside>
                 </div>
             )}
 
