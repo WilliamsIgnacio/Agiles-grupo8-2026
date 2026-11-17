@@ -95,26 +95,48 @@ const Jugar: React.FC = () => {
                 {categoriesLoading && <p role="status">Cargando opciones de práctica...</p>}
                 {error && <p className="category-error" role="alert">{error}</p>}
 
-            <h2 className="levels-title">Modo práctica</h2>
-            <section className="level-card practice-card">
-                <div className="level-header">
-                    <span className="level-badge">Hasta 10 intentos</span>
-                    <span className="level-difficulty facil">Práctica</span>
+            <div className="game-mode-grid">
+                <div className="game-mode-column">
+                    <h2 className="levels-title">Modo práctica</h2>
+                    <section className="level-card practice-card">
+                        <div className="level-header">
+                            <span className="level-badge">Hasta 10 intentos</span>
+                            <span className="level-difficulty facil">Práctica</span>
+                        </div>
+                        <h3>Modo práctica</h3>
+                        <p className="level-description">
+                            Adiviná personajes al azar con hasta 10 intentos. Al acertar,
+                            podés empezar otra partida con un personaje distinto.
+                        </p>
+                        <div className="level-footer">
+                            <span className="attempts">Un personaje nuevo en cada ronda</span>
+                            <Link className="play-link" to={`/jugar/practica${practiceQuery}`}>
+                                Practicar ➜
+                            </Link>
+                        </div>
+                    </section>
                 </div>
-                <h3>Modo práctica</h3>
-                <p className="level-description">
-                    Adiviná personajes al azar con hasta 10 intentos. Al acertar,
-                    podés empezar otra partida con un personaje distinto.
-                </p>
-                <div className="level-footer">
-                    <span className="attempts">Un personaje nuevo en cada ronda</span>
-                    <Link className="play-link" to={`/jugar/practica${practiceQuery}`}>
-                        Practicar ➜
-                    </Link>
-                </div>
-            </section>
 
-            <h2 className="levels-title">Desafíos</h2>
+                <div className="game-mode-column">
+                    <h2 className="levels-title">Desafíos</h2>
+                    <section className="level-card daily-challenge-card">
+                        <div className="level-header">
+                            <span className="level-badge">Un desafío por día</span>
+                            <span className="level-difficulty">Aleatorio</span>
+                        </div>
+                        <h3>Desafíos diarios</h3>
+                        <p className="level-description">
+                            Elegí una fecha y adiviná el personaje asignado para ese día. No se puede elegir categoría ni dificultad.
+                        </p>
+                        <div className="level-footer">
+                            <span className="attempts">Hasta 10 intentos</span>
+                            <Link className="play-link" to="/jugar/desafios">
+                                Elegir día ➜
+                            </Link>
+                        </div>
+                    </section>
+                </div>
+            </div>
             <div className="level-grid">
                 {challenges.map((challenge) => (
                     <div className="level-card" key={challenge.id}>
@@ -137,9 +159,6 @@ const Jugar: React.FC = () => {
                     </div>
                 ))}
             </div>
-            {!categoriesLoading && challenges.length === 0 && !error && (
-                <p>No hay desafíos disponibles.</p>
-            )}
         </div>
     );
 };

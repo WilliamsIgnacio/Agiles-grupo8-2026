@@ -4,6 +4,10 @@ import { sileo } from 'sileo';
 
 import { getCharacters } from '../../services/character';
 import { getChallenge } from '../../services/challenges';
+import {
+    getDailyChallenge,
+    saveDailyChallengeResult,
+} from '../../services/dailyChallenges';
 import { calculateScore } from '../../services/scores';
 import type { Character, CharacterHint } from '../../types/character';
 import type { Challenge } from '../../types/challenge';
@@ -41,19 +45,31 @@ interface RevealedHintPlacement {
     afterGuessId: number | null;
 }
 
-    interface LevelProps {
-        practiceMode?: boolean;
-    }
+interface LevelProps {
+    practiceMode?: boolean;
+    dailyMode?: boolean;
+}
 
-const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
+type GameChallenge = Pick<Challenge, 'characterId' | 'name' | 'description'>;
 
-    const { challengeId: challengeParam } = useParams<{ challengeId: string }>();
+const isValidDate = (value: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+};
+
+const Level: React.FC<LevelProps> = ({ practiceMode = false, dailyMode = false }) => {
+    const { challengeId: challengeParam, date: dailyDateParam } = useParams<{
+        challengeId: string;
+        date: string;
+    }>();
     const [searchParams] = useSearchParams();
 
     const challengeId = Number(challengeParam);
+    const dailyDate = dailyDateParam ?? '';
     const categoryParam = searchParams.get('categoryId') ?? 'all';
     const difficultyParam = searchParams.get('difficultyId') ?? 'default';
-    const requestKey = `${practiceMode}:${challengeParam ?? ''}:${categoryParam}:${difficultyParam}`;
+    const requestKey = `${practiceMode}:${dailyMode}:${challengeParam ?? ''}:${dailyDate}:${categoryParam}:${difficultyParam}`;
     const categoryId = Number(categoryParam);
     const difficultyId = Number(difficultyParam);
     const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
@@ -68,15 +84,17 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         (!Number.isSafeInteger(difficultyId) || difficultyId <= 0);
     
     const invalidChallenge =
-        !practiceMode &&
-        (!Number.isSafeInteger(challengeId) || challengeId <= 0);
+        dailyMode
+            ? !isValidDate(dailyDate)
+            : !practiceMode &&
+                (!Number.isSafeInteger(challengeId) || challengeId <= 0);
     
     const loading = loadedRequestKey !== requestKey;
 
     const [characters, setCharacters] = useState<Character[]>([]);
     const [targetCandidates, setTargetCandidates] = useState<Character[]>([]);
     const [targetCharacter, setTargetCharacter] = useState<Character | null>(null);
-    const [challenge, setChallenge] = useState<Challenge | null>(null);
+    const [challenge, setChallenge] = useState<GameChallenge | null>(null);
     const [guesses, setGuesses] = useState<Character[]>([]);
     const [guessName, setGuessName] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -123,7 +141,9 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         const characterRequest = getCharacters();
         const challengeRequest = practiceMode
             ? Promise.resolve(null)
-            : getChallenge(challengeId);
+            : dailyMode
+                ? getDailyChallenge(dailyDate)
+                : getChallenge(challengeId);
 
         Promise.all([characterRequest, challengeRequest])
         .then(([loadedCharacters, loadedChallenge]) => {
@@ -155,7 +175,11 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
             setChallenge(loadedChallenge);
 
             if (eligibleCharacters.length === 0) {
-                setError('No hay personajes disponibles para esta categoría.');
+                setError(
+                    dailyMode
+                        ? 'No hay personajes disponibles para el desafío diario.'
+                        : 'No hay personajes disponibles para esta categoría.',
+                );
                 return;
             }
 
@@ -203,17 +227,40 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         return () => {
             isCurrentRequest = false;
         };
-    }, [categoryId, categoryParam, challengeId, difficultyId, difficultyParam, invalidCategory, invalidChallenge, invalidDifficulty, practiceMode, requestKey]);
+    }, [categoryId, categoryParam, challengeId, dailyDate, dailyMode, difficultyId, difficultyParam, invalidCategory, invalidChallenge, invalidDifficulty, practiceMode, requestKey]);
 
     const won =
         targetCharacter !== null &&
         guesses.some((guess) => guess.id === targetCharacter.id);
     const gameFinished = won || gaveUp || attempts >= MAX_ATTEMPTS;
 
+    useEffect(() => {
+        if (
+            !dailyMode ||
+            loading ||
+            targetCharacter === null ||
+            !gameFinished
+        ) {
+            return;
+        }
+
+        try {
+            saveDailyChallengeResult(dailyDate, won ? 'won' : 'lost');
+        } catch (reason: unknown) {
+            sileo.error({
+                title: 'No se pudo guardar el progreso del desafío.',
+                description:
+                    reason instanceof Error
+                        ? reason.message
+                        : 'Intentá nuevamente.',
+            });
+        }
+    }, [dailyDate, dailyMode, gameFinished, loading, targetCharacter, won]);
+
     const shareResult = async () => {
         if (!targetCharacter) return;
 
-        const modeName = practiceMode ? 'Modo práctica' : challenge?.name ?? 'Desafío Diario';
+        const modeName = practiceMode ? 'Modo práctica' : challenge?.name ?? 'Desafío diario';
         const scoreText =
             won && finalScore !== null ? ` Puntaje: ${finalScore}.` : '';
         const text = `Histodle - ${modeName}: ${
@@ -346,15 +393,17 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
     if (invalidCategory || invalidDifficulty || invalidChallenge) {
         return (
             <section>
-                <h1>{practiceMode ? 'Modo práctica' : 'Desafío'}</h1>
+                <h1>{practiceMode ? 'Modo práctica' : dailyMode ? 'Desafío diario' : 'Desafío'}</h1>
                 <p role="alert">
                     {invalidCategory
                         ? 'La categoría seleccionada no es válida.'
                         : invalidDifficulty
                             ? 'La dificultad seleccionada no es válida.'
-                            : 'El desafío seleccionado no es válido.'}
+                            : dailyMode
+                                ? 'La fecha del desafío no es válida.'
+                                : 'El desafío seleccionado no es válido.'}
                 </p>
-                <Link to="/jugar">Volver a jugar</Link>
+                <Link to={dailyMode ? '/jugar/desafios' : '/jugar'}>{dailyMode ? 'Volver a elegir día' : 'Volver a jugar'}</Link>
             </section>
         );
     }
@@ -364,9 +413,11 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
     if (error) {
         return (
         <section>
-            <h1>{practiceMode ? 'Modo práctica' : 'Desafío'}</h1>
+            <h1>{practiceMode ? 'Modo práctica' : dailyMode ? 'Desafío diario' : 'Desafío'}</h1>
             <p role="alert">{error}</p>
-            <Link to="/jugar">{practiceMode ? 'Volver a jugar' : 'Volver a desafíos'}</Link>
+            <Link to={dailyMode ? '/jugar/desafios' : '/jugar'}>
+                {dailyMode ? 'Volver a elegir día' : practiceMode ? 'Volver a jugar' : 'Volver a desafíos'}
+            </Link>
         </section>
         );
     }
@@ -374,9 +425,11 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
     if (!targetCharacter) {
         return (
         <section>
-            <h1>{practiceMode ? 'Modo práctica' : 'Desafío'}</h1>
+            <h1>{practiceMode ? 'Modo práctica' : dailyMode ? 'Desafío diario' : 'Desafío'}</h1>
             <p>No se pudo elegir un personaje para esta partida.</p>
-            <Link to="/jugar">Volver a desafíos</Link>
+            <Link to={dailyMode ? '/jugar/desafios' : '/jugar'}>
+                {dailyMode ? 'Volver a elegir día' : 'Volver a desafíos'}
+            </Link>
         </section>
         );
     }
@@ -446,6 +499,13 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
             )}
 
             {practiceMode && !won && (gaveUp || attempts >= MAX_ATTEMPTS) && (
+                <div className="game-result-giveup" role="status">
+                    {gaveUp ? '¡Te rendiste!' : '¡Perdiste! Se acabaron los intentos.'}
+                    {gaveUp && <p>El personaje era {targetCharacter.name}.</p>}
+                </div>
+            )}
+
+            {!practiceMode && !won && (gaveUp || attempts >= MAX_ATTEMPTS) && (
                 <div className="game-result-giveup" role="status">
                     {gaveUp ? '¡Te rendiste!' : '¡Perdiste! Se acabaron los intentos.'}
                     {gaveUp && <p>El personaje era {targetCharacter.name}.</p>}
@@ -602,13 +662,6 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                         )}
                     </div>
                     <p className='info-text'>Escribí cualquier personaje histórico. Los colores te dirán qué tiene en común con el misterioso.</p>
-                </div>
-            )}
-
-            {!practiceMode && !won && (gaveUp || attempts >= MAX_ATTEMPTS) && (
-                <div className="game-result" role="status">
-                    <h2>{gaveUp ? 'Te rendiste.' : '¡Perdiste! No tenés más intentos.'}</h2>
-                    {gaveUp && <p>El personaje era {targetCharacter.name}.</p>}
                 </div>
             )}
 
