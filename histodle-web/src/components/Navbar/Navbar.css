@@ -104,7 +104,9 @@
 }
 
 .user-menu-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     width: 100%;
     border: 0;
     background: transparent;

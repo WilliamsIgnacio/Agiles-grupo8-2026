@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { sileo } from 'sileo';
 import logo from '../../images/histodle-classic-white-on-black.png';
 import './Navbar.css';
 import { useAuth } from '../../context/AuthContext';
@@ -15,7 +16,26 @@ const navLinks: NavItem[] = [{ name: 'Jugar', path: '/jugar' }];
 const Navbar: React.FC = () => {
     const { user, logout } = useAuth();
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
+
+    const handleLogout = async () => {
+        if (isLoggingOut) return;
+
+        setIsLoggingOut(true);
+        try {
+            await sileo.promise(logout(), {
+                loading: { title: 'Cerrando sesión...' },
+                success: { title: 'Sesión cerrada.' },
+                error: { title: 'No se pudo cerrar la sesión.' },
+            });
+            setIsUserMenuOpen(false);
+        } catch {
+            setIsUserMenuOpen(true);
+        } finally {
+            setIsLoggingOut(false);
+        }
+    };
 
     useEffect(() => {
         const closeMenu = (event: MouseEvent) => {
@@ -79,15 +99,28 @@ const Navbar: React.FC = () => {
                                     {user.provider === 'google' ? 'Agregar contraseña' : 'Cambiar contraseña'}
                                 </NavLink>
                                 <button
-                                    className="user-menu-item"
+                                    className="user-menu-item user-menu-logout"
                                     type="button"
                                     role="menuitem"
-                                    onClick={() => {
-                                        setIsUserMenuOpen(false);
-                                        void logout();
-                                    }}
+                                    onClick={() => void handleLogout()}
+                                    disabled={isLoggingOut}
                                 >
-                                    Salir
+                                    <svg
+                                        aria-hidden="true"
+                                        viewBox="0 0 24 24"
+                                        width="18"
+                                        height="18"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path d="M10 17l5-5-5-5" />
+                                        <path d="M15 12H3" />
+                                        <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
+                                    </svg>
+                                    {isLoggingOut ? 'Cerrando sesión...' : 'Salir'}
                                 </button>
                             </div>
                         )}
