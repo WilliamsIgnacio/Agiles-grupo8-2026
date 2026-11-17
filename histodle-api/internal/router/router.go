@@ -11,6 +11,7 @@ import (
 	"histodle-api/internal/challenge"
 	"histodle-api/internal/character"
 	"histodle-api/internal/difficulty"
+	"histodle-api/internal/leaderboard"
 	"histodle-api/internal/metrics"
 	"histodle-api/internal/occupation"
 	"histodle-api/internal/score"
@@ -94,6 +95,9 @@ func New(db *gorm.DB, cfg config.Config) (http.Handler, error) {
 	scoreRepository := score.NewRepository(db)
 	scoreService := score.NewService(scoreRepository)
 	scoreHandler := score.NewHandler(scoreService)
+	leaderboardRepository := leaderboard.NewRepository(db)
+	leaderboardService := leaderboard.NewService(leaderboardRepository, scoreService)
+	leaderboardHandler := leaderboard.NewHandler(leaderboardService)
 
 	r.Get("/scores", scoreHandler.List)
 	r.Get("/scores/{id}", scoreHandler.Get)
@@ -102,6 +106,8 @@ func New(db *gorm.DB, cfg config.Config) (http.Handler, error) {
 	r.With(authService.RequireAdmin).Post("/scores", scoreHandler.Create)
 	r.With(authService.RequireAdmin).Put("/scores/{id}", scoreHandler.Update)
 	r.With(authService.RequireAdmin).Delete("/scores/{id}", scoreHandler.Delete)
+	r.Get("/leaderboard", leaderboardHandler.Ranking)
+	r.With(authService.RequireAuth).Post("/challenges/{challengeId}/results", leaderboardHandler.Record)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

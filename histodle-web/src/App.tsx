@@ -12,12 +12,13 @@ import Level from './components/Level/Level';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthPage from './pages/Auth/Auth';
 import ChangePassword from './pages/Account/ChangePassword';
+import Resultados from './pages/Resultados/Resultados';
 
 const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user, loading } = useAuth();
     const location = useLocation();
     if (loading) return <p>Cargando sesión...</p>;
-    if (!user) return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
+    if (!user) return <Navigate to="/auth" replace state={{ from: `${location.pathname}${location.search}` }} />;
     if (user.role !== 'admin') return <Navigate to="/jugar" replace />;
     return <>{children}</>;
 };
@@ -26,7 +27,7 @@ const AuthenticatedGuard: React.FC<{ children: React.ReactNode }> = ({ children 
     const { user, loading } = useAuth();
     const location = useLocation();
     if (loading) return <p>Cargando sesión...</p>;
-    if (!user) return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
+    if (!user) return <Navigate to="/auth" replace state={{ from: `${location.pathname}${location.search}` }} />;
     return <>{children}</>;
 };
 
@@ -51,8 +52,9 @@ const router = createBrowserRouter([
             { path: 'auth', element: <AuthPage /> },
             { path: 'cuenta/password', element: <AuthenticatedGuard><ChangePassword /></AuthenticatedGuard> },
             { path: 'jugar', element: <Jugar /> },
+            { path: 'resultados', element: <Resultados /> },
             { path: 'jugar/practica', element: <Level practiceMode /> },
-            { path: 'jugar/desafio/:challengeId', element: <Level /> },
+            { path: 'jugar/desafio/:challengeId', element: <AuthenticatedGuard><Level /></AuthenticatedGuard> },
             { 
                 path: 'admin', 
                 element: <AdminGuard><Admin /></AdminGuard> ,

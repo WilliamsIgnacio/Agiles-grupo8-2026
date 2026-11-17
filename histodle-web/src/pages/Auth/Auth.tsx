@@ -1,13 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { googleLoginURL } from '../../services/auth';
+import { googleLoginURLFor } from '../../services/auth';
 import { useAuth } from '../../context/AuthContext';
 import './Auth.css';
 
 export default function AuthPage() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as { from?: string } | null)?.from;
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,7 +50,7 @@ export default function AuthPage() {
             : 'No se pudo iniciar sesión.',
         },
       });
-      navigate('/jugar');
+      navigate(returnTo || '/jugar', { replace: true });
     } catch (reason: unknown) {
       setError(reason instanceof Error ? reason.message : 'No se pudo autenticar');
     } finally {
@@ -92,7 +94,7 @@ export default function AuthPage() {
       </button>
     </form>
     <div className="auth-divider"><span>o continuar con</span></div>
-    <a className="auth-google" href={googleLoginURL}>Continuar con Google</a>
+    <a className="auth-google" href={googleLoginURLFor(returnTo)}>Continuar con Google</a>
     <button
       className="auth-toggle"
       type="button"

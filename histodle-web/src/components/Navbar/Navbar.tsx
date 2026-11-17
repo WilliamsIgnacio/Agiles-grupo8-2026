@@ -11,7 +11,10 @@ interface NavItem {
     path: string;
 }
 
-const navLinks: NavItem[] = [{ name: 'Jugar', path: '/jugar' }];
+const navLinks: NavItem[] = [
+    { name: 'Jugar', path: '/jugar' },
+    { name: 'Resultados', path: '/resultados' },
+];
 
 const Navbar: React.FC = () => {
     const { user, logout } = useAuth();

@@ -17,6 +17,7 @@ func TestCalculate(t *testing.T) {
 		{"attempt and hint", Score{MaxScore: 1000, MinScore: 50, AttemptPenaltyPercentage: 15, HintPenaltyPercentage: 20}, 3, 1, true, 599, false},
 		{"first attempt with hint", Score{MaxScore: 1000, MinScore: 50, AttemptPenaltyPercentage: 15, HintPenaltyPercentage: 20}, 1, 1, true, 810, false},
 		{"loss", Score{MaxScore: 1000, MinScore: 50, AttemptPenaltyPercentage: 15, HintPenaltyPercentage: 20}, 10, 4, false, 0, false},
+		{"loss before guessing", Score{MaxScore: 1000, MinScore: 50}, 0, 0, false, 0, false},
 		{"zero penalties", Score{MaxScore: 100, MinScore: 20}, 10, 5, true, 100, false},
 		{"full attempt penalty", Score{MaxScore: 100, MinScore: 20, AttemptPenaltyPercentage: 100}, 2, 0, true, 20, false},
 		{"full hint penalty", Score{MaxScore: 100, MinScore: 20, HintPenaltyPercentage: 100}, 1, 1, true, 20, false},

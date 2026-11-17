@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -89,6 +90,8 @@ func (h *Handler) Google(w http.ResponseWriter, r *http.Request) {
 		}
 		http.SetCookie(w, &http.Cookie{Name: "oauth_link_user", Value: strconv.FormatUint(uint64(u.ID), 10), Path: "/auth", HttpOnly: true, Secure: h.service.config.CookieSecure, SameSite: http.SameSiteLaxMode, MaxAge: 600})
 	}
+	returnTo := safeReturnTo(r.URL.Query().Get("returnTo"))
+	http.SetCookie(w, &http.Cookie{Name: "oauth_return_to", Value: returnTo, Path: "/auth", HttpOnly: true, Secure: h.service.config.CookieSecure, SameSite: http.SameSiteLaxMode, MaxAge: 600})
 	state, err := randomToken()
 	if err != nil {
 		http.Error(w, "No se pudo iniciar autenticación", 500)
@@ -107,6 +110,7 @@ func (h *Handler) Google(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	stateCookie, err1 := r.Cookie("oauth_state")
 	nonceCookie, err2 := r.Cookie("oauth_nonce")
+	returnToCookie, returnToErr := r.Cookie("oauth_return_to")
 	linkCookie, linkErr := r.Cookie("oauth_link_user")
 	if err1 != nil || err2 != nil || stateCookie.Value == "" || stateCookie.Value != r.URL.Query().Get("state") {
 		http.Error(w, "Estado OAuth inválido", http.StatusBadRequest)
@@ -135,7 +139,23 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{Name: "oauth_link_user", Value: "", Path: "/auth", MaxAge: -1, HttpOnly: true})
 	http.SetCookie(w, &http.Cookie{Name: "oauth_state", Value: "", Path: "/auth", MaxAge: -1, HttpOnly: true})
 	http.SetCookie(w, &http.Cookie{Name: "oauth_nonce", Value: "", Path: "/auth", MaxAge: -1, HttpOnly: true})
-	http.Redirect(w, r, h.service.config.WebURL, http.StatusFound)
+	http.SetCookie(w, &http.Cookie{Name: "oauth_return_to", Value: "", Path: "/auth", MaxAge: -1, HttpOnly: true})
+	returnTo := "/"
+	if returnToErr == nil {
+		returnTo = safeReturnTo(returnToCookie.Value)
+	}
+	http.Redirect(w, r, strings.TrimRight(h.service.config.WebURL, "/")+returnTo, http.StatusFound)
+}
+
+func safeReturnTo(value string) string {
+	if !strings.HasPrefix(value, "/") || strings.HasPrefix(value, "//") || strings.Contains(value, "\\") {
+		return "/"
+	}
+	parsed, err := url.Parse(value)
+	if err != nil || parsed.IsAbs() || parsed.Host != "" {
+		return "/"
+	}
+	return value
 }
 
 func (h *Handler) startSession(w http.ResponseWriter, u user.User) {

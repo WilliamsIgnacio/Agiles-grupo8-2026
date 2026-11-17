@@ -4,6 +4,7 @@ import { sileo } from 'sileo';
 
 import { getCharacters } from '../../services/character';
 import { getChallenge } from '../../services/challenges';
+import { recordChallengeResult, type ChallengeResultInput } from '../../services/leaderboard';
 import { calculateScore } from '../../services/scores';
 import type { Character, CharacterHint } from '../../types/character';
 import type { Challenge } from '../../types/challenge';
@@ -87,6 +88,9 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
     const hintsUsed = revealedHints.length;
     const [finalScore, setFinalScore] = useState<number | null>(null);
     const [scoreLoading, setScoreLoading] = useState(false);
+    const [resultCounted, setResultCounted] = useState<boolean | null>(null);
+    const [resultSubmissionError, setResultSubmissionError] = useState<string | null>(null);
+    const [pendingChallengeResult, setPendingChallengeResult] = useState<ChallengeResultInput | null>(null);
     const [ showSuggestions, setShowSuggestions ] = useState(false);
 
     const startNextPractice = () => {
@@ -107,6 +111,9 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         setRevealedHints([]);
         setFinalScore(null);
         setScoreLoading(false);
+        setResultCounted(null);
+        setResultSubmissionError(null);
+        setPendingChallengeResult(null);
     };
 
     useEffect(() => {
@@ -151,6 +158,9 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
             setRevealedHints([]);
             setFinalScore(null);
             setScoreLoading(false);
+            setResultCounted(null);
+            setResultSubmissionError(null);
+            setPendingChallengeResult(null);
             setCharacters(eligibleCharacters);
             setChallenge(loadedChallenge);
 
@@ -250,12 +260,36 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
         setAttempts((currentAttempts) => currentAttempts + 1);
     };
 
+    const saveChallengeResult = async (input: ChallengeResultInput) => {
+        if (practiceMode) return;
+
+        setPendingChallengeResult(input);
+        setResultSubmissionError(null);
+        setScoreLoading(true);
+        try {
+            const result = await recordChallengeResult(challengeId, input);
+            setFinalScore(result.score);
+            setResultCounted(result.counted);
+            setPendingChallengeResult(null);
+        } catch (reason: unknown) {
+            const errorMessage = reason instanceof Error
+                ? reason.message
+                : 'No se pudo registrar el resultado del desafío.';
+            setResultSubmissionError(errorMessage);
+        } finally {
+            setScoreLoading(false);
+        }
+    };
+
     const surrenderGame = () => {
         if (gameFinished) return;
 
         setGaveUp(true);
         setGuessName('');
         setShowSuggestions(false);
+        if (!practiceMode) {
+            void saveChallengeResult({ attemptsUsed: attempts, hintsUsed, won: false });
+        }
     };
 
     const revealHint = () => {
@@ -317,28 +351,39 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                 description: `La respuesta era ${targetCharacter.name}.`,
                 duration: 5000,
             });
-            setScoreLoading(true);
-            try {
-                const result = await calculateScore(targetCharacter.difficultyId, {
-                    attemptsUsed: attempts + 1,
-                    hintsUsed,
-                    won: true,
-                });
-                setFinalScore(result.score);
-            } catch (reason: unknown) {
-                setMessage(
-                    reason instanceof Error
-                        ? reason.message
-                        : 'No se pudo calcular el puntaje.',
-                );
-            } finally {
-                setScoreLoading(false);
+            const input = {
+                attemptsUsed: attempts + 1,
+                hintsUsed,
+                won: true,
+            };
+            if (practiceMode) {
+                setScoreLoading(true);
+                try {
+                    const result = await calculateScore(targetCharacter.difficultyId, input);
+                    setFinalScore(result.score);
+                } catch (reason: unknown) {
+                    setMessage(
+                        reason instanceof Error
+                            ? reason.message
+                            : 'No se pudo calcular el puntaje.',
+                    );
+                } finally {
+                    setScoreLoading(false);
+                }
+            } else {
+                await saveChallengeResult(input);
             }
         } else if (practiceMode && attempts + 1 >= MAX_ATTEMPTS) {
             sileo.error({
                 title: '¡Perdiste!',
                 description: `Se acabaron los ${MAX_ATTEMPTS} intentos. El personaje era ${targetCharacter?.name}.`,
                 duration: 5000,
+            });
+        } else if (!practiceMode && attempts + 1 >= MAX_ATTEMPTS) {
+            await saveChallengeResult({
+                attemptsUsed: attempts + 1,
+                hintsUsed,
+                won: false,
             });
         }
     };
@@ -437,11 +482,33 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                     <p>
                         ¡Adivinaste el personaje misterioso! 
                         {scoreLoading
-                            ? 'Calculando puntaje...'
+                            ? 'Calculando y registrando puntaje...'
                             : finalScore !== null
                                 ? ` Tu puntaje obtenido es de ${finalScore} puntos`
-                                : 'No se pudo calcular el puntaje.'}
+                                : resultSubmissionError
+                                    ? 'No se pudo guardar el resultado.'
+                                    : 'No se pudo calcular el puntaje.'}
                     </p>
+                    {!practiceMode && resultCounted === true && (
+                        <p>Este resultado se sumó a tu puntaje del ranking.</p>
+                    )}
+                    {!practiceMode && resultCounted === false && (
+                        <p>Este desafío ya estaba registrado; los puntos de esta partida no se suman nuevamente.</p>
+                    )}
+                    {resultSubmissionError && (
+                        <div>
+                            <p role="alert">No se pudo guardar el resultado: {resultSubmissionError}</p>
+                            {pendingChallengeResult && (
+                                <button
+                                    type="button"
+                                    onClick={() => void saveChallengeResult(pendingChallengeResult)}
+                                    disabled={scoreLoading}
+                                >
+                                    Reintentar registro
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -609,6 +676,27 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false }) => {
                 <div className="game-result" role="status">
                     <h2>{gaveUp ? 'Te rendiste.' : '¡Perdiste! No tenés más intentos.'}</h2>
                     {gaveUp && <p>El personaje era {targetCharacter.name}.</p>}
+                    {scoreLoading && <p>Registrando el resultado del desafío...</p>}
+                    {!scoreLoading && resultCounted === true && (
+                        <p>Primera partida registrada: sumaste 0 puntos al ranking.</p>
+                    )}
+                    {!scoreLoading && resultCounted === false && (
+                        <p>Este desafío ya estaba registrado; esta partida no modifica tu puntaje.</p>
+                    )}
+                    {resultSubmissionError && (
+                        <div>
+                            <p role="alert">No se pudo guardar el resultado: {resultSubmissionError}</p>
+                            {pendingChallengeResult && (
+                                <button
+                                    type="button"
+                                    onClick={() => void saveChallengeResult(pendingChallengeResult)}
+                                    disabled={scoreLoading}
+                                >
+                                    Reintentar registro
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 
