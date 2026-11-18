@@ -27,9 +27,17 @@ import (
 func New(db *gorm.DB, cfg config.Config) (http.Handler, error) {
 	r := chi.NewRouter()
 
+	allowedOrigins := []string{
+		"http://localhost:5173",
+		"http://localhost:3000",
+	}
+	if cfg.WebURL != "" {
+		allowedOrigins = append(allowedOrigins, cfg.WebURL)
+	}
+
 	r.Use(securityHeaders)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:3000"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		AllowCredentials: true,
