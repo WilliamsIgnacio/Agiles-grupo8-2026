@@ -246,7 +246,8 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false, dailyMode = false }
     const won =
         targetCharacter !== null &&
         guesses.some((guess) => guess.id === targetCharacter.id);
-    const gameFinished = won || gaveUp || attempts >= MAX_ATTEMPTS;
+    const gameLost = !won && (gaveUp || attempts >= MAX_ATTEMPTS);
+    const gameFinished = won || gameLost;
 
     useEffect(() => {
         if (
@@ -426,12 +427,6 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false, dailyMode = false }
             } else {
                 await saveChallengeResult(input);
             }
-        } else if (practiceMode && attempts + 1 >= MAX_ATTEMPTS) {
-            sileo.error({
-                title: '¡Perdiste!',
-                description: `Se acabaron los ${MAX_ATTEMPTS} intentos. El personaje era ${targetCharacter?.name}.`,
-                duration: 5000,
-            });
         } else if (!practiceMode && attempts + 1 >= MAX_ATTEMPTS) {
             await saveChallengeResult({
                 attemptsUsed: attempts + 1,
@@ -571,18 +566,114 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false, dailyMode = false }
                 </div>
             )}
 
-            {practiceMode && !won && (gaveUp || attempts >= MAX_ATTEMPTS) && (
-                <div className="game-result-giveup" role="status">
-                    {gaveUp ? '¡Te rendiste!' : '¡Perdiste! Se acabaron los intentos.'}
-                    {gaveUp && <p>El personaje era {targetCharacter.name}.</p>}
-                </div>
-            )}
-
-            {!practiceMode && !won && (gaveUp || attempts >= MAX_ATTEMPTS) && (
-                <div className="game-result-giveup" role="status">
-                    {gaveUp ? '¡Te rendiste!' : '¡Perdiste! Se acabaron los intentos.'}
-                    {gaveUp && <p>El personaje era {targetCharacter.name}.</p>}
-                </div>
+            {gameLost && targetCharacter && (
+                <section
+                    className="game-result-giveup"
+                    role="status"
+                    aria-labelledby="game-loss-title"
+                >
+                    <h2 id="game-loss-title">
+                        ¡Perdiste! El personaje es {targetCharacter.name}.
+                    </h2>
+                    {!practiceMode && scoreLoading && (
+                        <p className="game-loss-feedback">
+                            Registrando el resultado del desafío...
+                        </p>
+                    )}
+                    {!practiceMode && !scoreLoading && resultCounted === true && (
+                        <p className="game-loss-feedback">
+                            Primera partida registrada: sumaste 0 puntos al ranking.
+                        </p>
+                    )}
+                    {!practiceMode && !scoreLoading && resultCounted === false && (
+                        <p className="game-loss-feedback">
+                            Este desafío ya estaba registrado; esta partida no modifica tu puntaje.
+                        </p>
+                    )}
+                    {resultSubmissionError && (
+                        <div className="game-loss-feedback">
+                            <p role="alert">
+                                No se pudo guardar el resultado: {resultSubmissionError}
+                            </p>
+                            {pendingChallengeResult && (
+                                <button
+                                    type="button"
+                                    onClick={() => void saveChallengeResult(pendingChallengeResult)}
+                                    disabled={scoreLoading}
+                                >
+                                    Reintentar registro
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    <article
+                        className="revealed-character-card"
+                        aria-labelledby="revealed-character-title"
+                    >
+                        <h3 id="revealed-character-title">Datos del personaje</h3>
+                        <dl className="revealed-character-grid">
+                            <div className="revealed-character-field">
+                                <dt>Dificultad</dt>
+                                <dd>{targetCharacter.difficulty?.name || 'Sin datos'}</dd>
+                            </div>
+                            <div className="revealed-character-field">
+                                <dt>País</dt>
+                                <dd>{targetCharacter.country || 'Sin datos'}</dd>
+                            </div>
+                            <div className="revealed-character-field">
+                                <dt>Continente</dt>
+                                <dd>{targetCharacter.continent || 'Sin datos'}</dd>
+                            </div>
+                            <div className="revealed-character-field">
+                                <dt>Período</dt>
+                                <dd>{targetCharacter.period || 'Sin datos'}</dd>
+                            </div>
+                            <div className="revealed-character-field">
+                                <dt>Nacimiento</dt>
+                                <dd>{targetCharacter.birthYear}</dd>
+                            </div>
+                            <div className="revealed-character-field">
+                                <dt>Muerte</dt>
+                                <dd>
+                                    {targetCharacter.yearOfDeath === 0
+                                        ? 'Actualidad'
+                                        : targetCharacter.yearOfDeath}
+                                </dd>
+                            </div>
+                            <div className="revealed-character-field">
+                                <dt>Género</dt>
+                                <dd>{targetCharacter.gender || 'Sin datos'}</dd>
+                            </div>
+                            <div className="revealed-character-field">
+                                <dt>Cargo / posición</dt>
+                                <dd>{targetCharacter.position || 'Ninguno'}</dd>
+                            </div>
+                            <div className="revealed-character-field">
+                                <dt>Conocido por</dt>
+                                <dd>{targetCharacter.knowFor || 'Sin especificación'}</dd>
+                            </div>
+                            <div className="revealed-character-field">
+                                <dt>Ocupaciones</dt>
+                                <dd>
+                                    {targetCharacter.occupations?.map((occupation) => occupation.name).join(', ')
+                                        || 'Sin ocupaciones'}
+                                </dd>
+                            </div>
+                            {targetCharacter.hints.length > 0 && (
+                                <div className="revealed-character-field revealed-character-hints">
+                                    <dt>Pistas</dt>
+                                    <dd>
+                                        <ul>
+                                            {targetCharacter.hints.map((hint) => (
+                                                <li key={hint.id}>{hint.text}</li>
+                                            ))}
+                                        </ul>
+                                    </dd>
+                                </div>
+                            )}
+                        </dl>
+                    </article>
+                </section>
             )}
 
 
@@ -735,34 +826,6 @@ const Level: React.FC<LevelProps> = ({ practiceMode = false, dailyMode = false }
                         )}
                     </div>
                     <p className='info-text'>Escribí cualquier personaje histórico. Los colores te dirán qué tiene en común con el misterioso.</p>
-                </div>
-            )}
-
-            {!practiceMode && !won && (gaveUp || attempts >= MAX_ATTEMPTS) && (
-                <div className="game-result" role="status">
-                    <h2>{gaveUp ? 'Te rendiste.' : '¡Perdiste! No tenés más intentos.'}</h2>
-                    {gaveUp && <p>El personaje era {targetCharacter.name}.</p>}
-                    {scoreLoading && <p>Registrando el resultado del desafío...</p>}
-                    {!scoreLoading && resultCounted === true && (
-                        <p>Primera partida registrada: sumaste 0 puntos al ranking.</p>
-                    )}
-                    {!scoreLoading && resultCounted === false && (
-                        <p>Este desafío ya estaba registrado; esta partida no modifica tu puntaje.</p>
-                    )}
-                    {resultSubmissionError && (
-                        <div>
-                            <p role="alert">No se pudo guardar el resultado: {resultSubmissionError}</p>
-                            {pendingChallengeResult && (
-                                <button
-                                    type="button"
-                                    onClick={() => void saveChallengeResult(pendingChallengeResult)}
-                                    disabled={scoreLoading}
-                                >
-                                    Reintentar registro
-                                </button>
-                            )}
-                        </div>
-                    )}
                 </div>
             )}
 

@@ -495,15 +495,118 @@ main > section:has(> form) > table tbody td.guess-value.mismatch::before {
 
 .game-result-giveup {
     display: flex;
+    flex-direction: column;
     align-items: center;
     text-align: center;
     justify-content: center;
-    flex-wrap: wrap;
     gap: 1rem;
     margin: 1.5rem 0;
     font-size: 1.2rem;
     font-weight: bold;
     color: #b91010;
+}
+
+.game-result-giveup h2 {
+    margin: 0;
+}
+
+.game-loss-feedback {
+    margin: 0;
+    color: #ff9a9a;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.game-loss-feedback button {
+    min-height: 2.8rem;
+    padding: 0.65rem 1.2rem;
+    border: 0;
+    border-radius: 0.8rem;
+    background: #ae2bd0;
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.game-loss-feedback button:hover {
+    background: #151515;
+}
+
+.game-loss-feedback button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.revealed-character-card {
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+    padding: 1.5rem;
+    border: 1px solid #281f36;
+    border-radius: 20px;
+    background-color: #120c1a;
+    color: #fff;
+    text-align: left;
+}
+
+.revealed-character-card h3 {
+    margin: 0 0 1.25rem;
+    color: #fff;
+    font-size: 1.25rem;
+}
+
+.revealed-character-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem 1rem;
+    margin: 0;
+}
+
+.revealed-character-field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.revealed-character-field dt {
+    color: rgb(220, 173, 255);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.revealed-character-field dd {
+    margin: 0;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.revealed-character-hints {
+    grid-column: 1 / -1;
+}
+
+.revealed-character-hints ul {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+@media (max-width: 700px) {
+    .revealed-character-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 420px) {
+    .revealed-character-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 
