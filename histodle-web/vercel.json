@@ -1,6 +1,34 @@
 {
   "rewrites": [
     {
+      "source": "/characters",
+      "destination": "https://histodle.onrender.com/characters"
+    },
+    {
+      "source": "/challenges",
+      "destination": "https://histodle.onrender.com/challenges"
+    },
+    {
+      "source": "/occupations",
+      "destination": "https://histodle.onrender.com/occupations"
+    },
+    {
+      "source": "/categories",
+      "destination": "https://histodle.onrender.com/categories"
+    },
+    {
+      "source": "/difficulties",
+      "destination": "https://histodle.onrender.com/difficulties"
+    },
+    {
+      "source": "/scores",
+      "destination": "https://histodle.onrender.com/scores"
+    },
+    {
+      "source": "/leaderboard",
+      "destination": "https://histodle.onrender.com/leaderboard"
+    },
+    {
       "source": "/auth/:path*",
       "destination": "https://histodle.onrender.com/auth/:path*"
     },
